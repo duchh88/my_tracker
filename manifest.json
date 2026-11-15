@@ -1,0 +1,22 @@
+{
+  "name": "monkeyhabits",
+  "short_name": "monkeyhabits",
+  "description": "Minimalist Monkeytype-inspired habit tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#323437",
+  "theme_color": "#323437",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/323437/e2b714?text=mh",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/323437/e2b714?text=mh",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="serika">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>monkeyhabits - grid tracker</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#323437" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root, [data-theme="serika"] {
+      --bg: #323437; --bg-alt: #2c2e31; --main: #e2b714;
+      --sub: #646669; --text: #d1d0c5; --error: #ca4754;
+    }
+    [data-theme="carbon"] {
+      --bg: #111111; --bg-alt: #191919; --main: #e2b714;
+      --sub: #525252; --text: #d1d0c5; --error: #ca4754;
+    }
+    [data-theme="dracula"] {
+      --bg: #282a36; --bg-alt: #21222c; --main: #bd93f9;
+      --sub: #6272a4; --text: #f8f8f2; --error: #ff5555;
+    }
+    [data-theme="nord"] {
+      --bg: #2e3440; --bg-alt: #272c36; --main: #88c0d0;
+      --sub: #4c566a; --text: #eceff4; --error: #bf616a;
+    }
+    [data-theme="matrix"] {
+      --bg: #000000; --bg-alt: #0a0f0a; --main: #15ff00;
+      --sub: #005500; --text: #d1ffcd; --error: #ff3333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .container {
+      max-width: 680px; width: 100%; margin: 0 auto; flex: 1;
+      display: flex; flex-direction: column; gap: 20px; padding-top: 12px; padding-bottom: 20px;
+    }
+
+    header { display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: 700; }
+    .logo span { color: var(--main); }
+
+    .mode-bar {
+      display: flex; gap: 10px; background: var(--bg-alt);
+      padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: var(--sub);
+    }
+    .mode-bar button {
+      background: none; border: none; color: inherit; font-family: inherit; cursor: pointer;
+    }
+    .mode-bar button:hover { color: var(--main); }
+
+    /* Category Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-btn {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      color: var(--sub);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .filter-btn.active {
+      background: var(--main);
+      color: var(--bg);
+      border-color: var(--main);
+      font-weight: 700;
+    }
+
+    /* Input Box */
+    .input-row {
+      display: flex; align-items: center; gap: 10px; background: var(--bg-alt);
+      padding: 12px 16px; border-radius: 8px; border: 1px solid transparent;
+    }
+    .input-row:focus-within { border-color: var(--main); }
+    .prompt-char { color: var(--main); font-weight: 700; }
+    .input-row input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: inherit; font-size: 0.9rem;
+    }
+    .input-row input::placeholder { color: var(--sub); }
+
+    /* Habit Cards */
+    .habits-grid { display: flex; flex-direction: column; gap: 16px; }
+
+    .habit-card {
+      background: var(--bg-alt);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .habit-card:hover { border-color: var(--sub); }
+
+    .habit-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .habit-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .habit-header-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .habit-info h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .category-tag {
+      font-size: 0.68rem;
+      background: var(--bg);
+      color: var(--main);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--sub);
+      text-transform: lowercase;
+    }
+
+    .habit-meta {
+      font-size: 0.75rem;
+      color: var(--sub);
+      display: flex;
+      gap: 10px;
+    }
+
+    /* High Contrast Action Buttons */
+    .habit-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: var(--bg);
+      border: 1px solid var(--sub);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--main);
+      color: var(--main);
+      background: var(--bg-alt);
+    }
+
+    .icon-btn.delete-btn {
+      border-color: rgba(202, 71, 84, 0.4);
+      color: var(--error);
+    }
+
+    .icon-btn.delete-btn:hover {
+      background: var(--error);
+      color: var(--bg);
+      border-color: var(--error);
+    }
+
+    /* Read-Only Visualization Matrix */
+    .habit-matrix-container {
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .habit-matrix {
+      display: grid;
+      grid-template-rows: repeat(7, 1fr);
+      grid-auto-flow: column;
+      gap: 4px;
+      width: max-content;
+    }
+
+    .matrix-cell {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--bg);
+      cursor: default;
+    }
+    
+    .matrix-cell[data-level="1"] { background: var(--habit-accent, var(--main)); opacity: 0.3; }
+    .matrix-cell[data-level="2"] { background: var(--habit-accent, var(--main)); opacity: 0.65; }
+    .matrix-cell[data-level="3"] { background: var(--habit-accent, var(--main)); opacity: 1; }
+
+    /* Bottom Action Row inside Card */
+    .habit-today-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--bg);
+      padding-top: 10px;
+      font-size: 0.8rem;
+      color: var(--sub);
+    }
+
+    .today-status-text {
+      color: var(--text);
+    }
+
+    .today-status-text span {
+      color: var(--habit-accent, var(--main));
+      font-weight: 700;
+    }
+
+    .open-input-btn {
+      background: var(--bg);
+      border: 1px solid var(--habit-accent, var(--main));
+      color: var(--habit-accent, var(--main));
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .open-input-btn:hover, .open-input-btn.done {
+      background: var(--habit-accent, var(--main));
+      color: var(--bg);
+    }
+
+    /* Chart View Styles */
+    .chart-range-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .range-btn {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      color: var(--sub);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .range-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .range-btn.active {
+      background: var(--main);
+      color: var(--bg);
+      border-color: var(--main);
+      font-weight: 700;
+    }
+
+    .chart-wrapper {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+    .time-chart {
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+
+    /* Metrics Cards Grid below Chart */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .metric-card {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-label {
+      font-size: 0.68rem;
+      color: var(--sub);
+      text-transform: uppercase;
+    }
+    .metric-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--habit-accent, var(--main));
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      display: flex;
+      background: var(--bg-alt);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+      margin-top: 12px;
+    }
+    .nav-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--sub);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .nav-tab:hover {
+      color: var(--text);
+    }
+    .nav-tab.active {
+      background: var(--main);
+      color: var(--bg);
+      font-weight: 700;
+    }
+
+    /* Color Swatch Picker Grid */
+    .color-picker-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .color-swatch:hover { transform: scale(1.1); }
+    .color-swatch.selected {
+      border-color: var(--text);
+      transform: scale(1.1);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Modals (Edit & Input) */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+      display: none; place-items: center; padding: 20px; z-index: 50;
+    }
+    .modal-backdrop.open { display: grid; }
+    .modal-box {
+      background: var(--bg); border: 1px solid var(--sub); border-radius: 10px;
+      width: min(92vw, 400px); padding: 20px; display: flex; flex-direction: column; gap: 16px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-box h3 { font-size: 1rem; color: var(--main); }
+    .modal-subtitle { font-size: 0.75rem; color: var(--sub); margin-top: -10px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--sub); }
+    .form-group input {
+      background: var(--bg-alt); border: 1px solid var(--sub); border-radius: 6px;
+      padding: 10px; color: var(--text); font-family: inherit; font-size: 0.9rem; outline: none;
+      color-scheme: dark;
+    }
+    .form-group input:focus { border-color: var(--main); }
+    .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+    .modal-buttons button {
+      background: var(--bg-alt); border: 1px solid var(--sub); color: var(--text);
+      padding: 8px 14px; border-radius: 6px; font-family: inherit; cursor: pointer; font-size: 0.8rem;
+    }
+    .modal-buttons button.primary { background: var(--main); color: var(--bg); border-color: var(--main); font-weight: 700; }
+
+    footer {
+      text-align: center; font-size: 0.7rem; color: var(--sub); padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><span>&gt;_</span> my_tracker</div>
+      <div class="mode-bar">
+        <button id="themeBtn">theme: <span id="themeName">serika</span></button>
+      </div>
+    </header>
+
+    <!-- Category Filter Bar -->
+    <div class="filter-bar" id="filterBar"></div>
+
+    <!-- Quick Add Input -->
+    <form class="input-row" id="addForm">
+      <span class="prompt-char">+</span>
+      <input type="text" id="habitInput" placeholder="add habit (e.g. read, gym, code)..." autocomplete="off" />
+    </form>
+
+    <!-- Current View Section (Cards with Heatmaps) -->
+    <section id="cardsSection" style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="habits-grid" id="habitsGrid"></div>
+    </section>
+
+    <!-- Chart View Section -->
+    <section id="chartSection" style="display: none; flex-direction: column; gap: 16px;">
+      <div class="chart-range-bar" id="chartRangeBar">
+        <button class="range-btn" data-range="30">last 30d</button>
+        <button class="range-btn" data-range="60">last 60d</button>
+        <button class="range-btn active" data-range="all">all time</button>
+      </div>
+      <div class="habits-grid" id="chartContainer"></div>
+    </section>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" id="currentViewBtn">grid</button>
+      <button class="nav-tab" id="chartViewBtn">charts</button>
+    </nav>
+
+    <footer>
+      <span>my_tracker • local storage PWA</span>
+    </footer>
+  </div>
+
+  <!-- Input Progress Modal -->
+  <div class="modal-backdrop" id="inputModal">
+    <form class="modal-box" id="inputForm">
+      <h3 id="inputModalTitle">log progress</h3>
+      <div class="modal-subtitle" id="inputModalGoalInfo"></div>
+      <div class="form-group">
+        <label>date</label>
+        <input type="date" id="inputDate" required />
+      </div>
+      <div class="form-group">
+        <label id="inputAmountLabel">actual amount</label>
+        <input type="number" id="inputAmount" min="0" step="any" placeholder="0" required />
+      </div>
+      <div class="modal-buttons">
+        <button type="button" id="cancelInput">cancel</button>
+        <button type="submit" class="primary">save log</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Edit Habit Modal -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal-box">
+      <h3>edit habit settings</h3>
+      <div class="form-group">
+        <label>habit name</label>
+        <input type="text" id="editName" />
+      </div>
+      <div class="form-group">
+        <label>color theme</label>
+        <div class="color-picker-grid" id="colorPickerGrid">
+          <div class="color-swatch" style="background: #e2b714;" data-color="#e2b714" title="Yellow"></div>
+          <div class="color-swatch" style="background: #61afef;" data-color="#61afef" title="Cyan"></div>
+          <div class="color-swatch" style="background: #c678dd;" data-color="#c678dd" title="Purple"></div>
+          <div class="color-swatch" style="background: #98c379;" data-color="#98c379" title="Green"></div>
+          <div class="color-swatch" style="background: #e06c75;" data-color="#e06c75" title="Red/Pink"></div>
+          <div class="color-swatch" style="background: #d19a66;" data-color="#d19a66" title="Orange"></div>
+          <div class="color-swatch" style="background: #56b6c2;" data-color="#56b6c2" title="Teal"></div>
+          <div class="color-swatch" style="background: #abb2bf;" data-color="#abb2bf" title="Silver"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>category (free text)</label>
+        <input type="text" id="editCategory" placeholder="e.g. health, work, study" />
+      </div>
+      <div class="form-group">
+        <label>unit (e.g. pages, min, glasses, km)</label>
+        <input type="text" id="editUnit" />
+      </div>
+      <div class="form-group">
+        <label>daily goal quantity</label>
+        <input type="number" id="editGoal" min="1" />
+      </div>
+      <div class="modal-buttons">
+        <button type="button" id="cancelEdit">cancel</button>
+        <button type="button" class="primary" id="saveEdit">save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const THEMES = ['serika', 'carbon', 'dracula', 'nord', 'matrix'];
+    const STORAGE_KEY = 'monkeyhabits_habitkit_v12';
+    const todayKey = () => {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      const local = new Date(now.getTime() - offset * 60 * 1000);
+      return local.toISOString().split('T')[0];
+    };
+
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+      theme: 'serika',
+      habits: [
+        { id: '1', name: 'read books', color: '#61afef', category: 'study', unit: 'pages', goal: 20, history: {} },
+        { id: '2', name: 'deep work', color: '#c678dd', category: 'work', unit: 'min', goal: 60, history: {} }
+      ]
+    };
+
+    let currentFilter = 'all';
+    let viewMode = 'cards';
+    let chartRange = 'all';
+    let editingId = null;
+    let loggingHabitId = null;
+    let selectedColor = '#e2b714';
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    function applyTheme(theme) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelector('meta[name="theme-color"]').setAttribute(
+        'content',
+        getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+      );
+      document.getElementById('themeName').textContent = theme;
+      save();
+    }
+
+    function getStreak(habit) {
+      let streak = 0;
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      while (true) {
+        const local = new Date(d.getTime() - offset * 60 * 1000);
+        const key = local.toISOString().split('T')[0];
+        const val = habit.history[key] || 0;
+        if (val >= habit.goal) {
+          streak++;
+          d.setDate(d.getDate() - 1);
+        } else if (key === todayKey()) {
+          d.setDate(d.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function getLongestGoalStreak(habit) {
+      const dates = Object.keys(habit.history).sort();
+      if (dates.length === 0) return 0;
+
+      let maxStreak = 0;
+      let currentStreak = 0;
+      let prevDate = null;
+
+      dates.forEach(dateStr => {
+        const val = habit.history[dateStr] || 0;
+        if (val >= habit.goal) {
+          if (!prevDate) {
+            currentStreak = 1;
+          } else {
+            const d1 = new Date(prevDate);
+            const d2 = new Date(dateStr);
+            const diffDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) {
+              currentStreak++;
+            } else {
+              currentStreak = 1;
+            }
+          }
+          prevDate = dateStr;
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          currentStreak = 0;
+          prevDate = null;
+        }
+      });
+      return maxStreak;
+    }
+
+    function getLevel(val, goal) {
+      if (!val || val <= 0) return 0;
+      const ratio = val / goal;
+      if (ratio >= 1) return 3;
+      if (ratio >= 0.5) return 2;
+      return 1;
+    }
+
+    function setHabitValue(habitId, dateStr, numericValue) {
+      const habit = state.habits.find(h => h.id === habitId);
+      if (!habit) return;
+      if (numericValue <= 0) {
+        delete habit.history[dateStr];
+      } else {
+        habit.history[dateStr] = numericValue;
+      }
+      save();
+    }
+
+    function renderFilterBar() {
+      const filterBar = document.getElementById('filterBar');
+      filterBar.innerHTML = '';
+
+      const categories = [...new Set(state.habits.map(h => h.category ? h.category.trim().toLowerCase() : '').filter(Boolean))];
+
+      const allBtn = document.createElement('button');
+      allBtn.className = `filter-btn ${currentFilter === 'all' ? 'active' : ''}`;
+      allBtn.textContent = 'all';
+      allBtn.onclick = () => {
+        currentFilter = 'all';
+        render();
+      };
+      filterBar.appendChild(allBtn);
+
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = `filter-btn ${currentFilter === cat ? 'active' : ''}`;
+        btn.textContent = cat;
+        btn.onclick = () => {
+          currentFilter = cat;
+          render();
+        };
+        filterBar.appendChild(btn);
+      });
+    }
+
+    function renderCards() {
+      const today = todayKey();
+      const grid = document.getElementById('habitsGrid');
+      grid.innerHTML = '';
+
+      const filteredHabits = state.habits.filter(habit => {
+        if (currentFilter === 'all') return true;
+        const cat = habit.category ? habit.category.trim().toLowerCase() : '';
+        return cat === currentFilter;
+      });
+
+      if (filteredHabits.length === 0) {
+        grid.innerHTML = `<div style="text-align:center; color:var(--sub); padding: 30px;">no habits found.</div>`;
+        return;
+      }
+
+      filteredHabits.forEach(habit => {
+        const streak = getStreak(habit);
+        const todayVal = habit.history[today] || 0;
+        const isDoneToday = todayVal >= habit.goal;
+        const habitColor = habit.color || '#e2b714';
+
+        const card = document.createElement('div');
+        card.className = 'habit-card';
+        card.style.setProperty('--habit-accent', habitColor);
+
+        let html = `
+          <div class="habit-card-header">
+            <div class="habit-info">
+              <div class="habit-header-top">
+                <h3>${habit.name}</h3>
+                ${habit.category ? `<span class="category-tag">${habit.category}</span>` : ''}
+              </div>
+              <div class="habit-meta">
+                <span>goal: ${habit.goal} ${habit.unit || ''}</span>
+                <span>streak: ${streak}d 🔥</span>
+              </div>
+            </div>
+            <div class="habit-actions">
+              <button class="icon-btn edit-btn" title="Edit">⚙ edit</button>
+              <button class="icon-btn delete-btn" title="Delete">✕ delete</button>
+            </div>
+          </div>
+          <div class="habit-matrix-container">
+            <div class="habit-matrix">
+        `;
+
+        for (let i = 90; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const offset = d.getTimezoneOffset();
+          const local = new Date(d.getTime() - offset * 60 * 1000);
+          const dateStr = local.toISOString().split('T')[0];
+          const val = habit.history[dateStr] || 0;
+          const level = getLevel(val, habit.goal);
+          html += `<div class="matrix-cell" data-level="${level}" title="${dateStr}: ${val} / ${habit.goal} ${habit.unit || ''}"></div>`;
+        }
+
+        html += `
+            </div>
+          </div>
+          <div class="habit-today-row">
+            <div class="today-status-text">today: <span>${todayVal}</span> / ${habit.goal} ${habit.unit || ''}</div>
+            <button type="button" class="open-input-btn ${isDoneToday ? 'done' : ''}">+ input</button>
+          </div>
+        `;
+
+        card.innerHTML = html;
+
+        card.querySelector('.edit-btn').onclick = () => openEditModal(habit);
+        card.querySelector('.delete-btn').onclick = () => {
+          state.habits = state.habits.filter(h => h.id !== habit.id);
+          if (!state.habits.some(h => (h.category || '').toLowerCase() === currentFilter)) {
+            currentFilter = 'all';
+          }
+          save();
+        };
+        card.querySelector('.open-input-btn').onclick = () => openInputModal(habit);
+
+        grid.appendChild(card);
+      });
+    }
+
+    function renderCharts() {
+      const container = document.getElementById('chartContainer');
+      container.innerHTML = '';
+
+      if (state.habits.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--sub); padding: 30px;">no habits found.</div>`;
+        return;
+      }
+
+      state.habits.forEach(habit => {
+        const card = document.createElement('div');
+        card.className = 'habit-card';
+        card.style.setProperty('--habit-accent', habit.color || '#e2b714');
+
+        let daysCount = 30;
+        if (chartRange === '60') daysCount = 60;
+        if (chartRange === 'all') {
+          const dates = Object.keys(habit.history);
+          if (dates.length > 0) {
+            dates.sort();
+            const earliest = new Date(dates[0]);
+            const now = new Date();
+            const diffTime = Math.abs(now - earliest);
+            daysCount = Math.max(30, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+          } else {
+            daysCount = 30;
+          }
+        }
+
+        const dataPoints = [];
+        for (let i = daysCount - 1; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const offset = d.getTimezoneOffset();
+          const local = new Date(d.getTime() - offset * 60 * 1000);
+          const dateStr = local.toISOString().split('T')[0];
+          const val = habit.history[dateStr] || 0;
+          dataPoints.push({ date: dateStr, val });
+        }
+
+        // Calculate metrics
+        const allVals = Object.values(habit.history);
+        const highestRecord = allVals.length > 0 ? Math.max(...allVals) : 0;
+        const sumVals = allVals.reduce((a, b) => a + b, 0);
+        const avgVal = allVals.length > 0 ? (sumVals / allVals.length).toFixed(1) : '0';
+        const longestGoalStreak = getLongestGoalStreak(habit);
+
+        const width = 540;
+        const height = 140;
+        const padLeft = 65;
+        const padRight = 25;
+        const padTop = 30;
+        const padBottom = 30;
+        const chartWidth = width - padLeft - padRight;
+        const chartHeight = height - padTop - padBottom;
+        const maxVal = Math.max(habit.goal, ...dataPoints.map(p => p.val), 1);
+
+        const points = dataPoints.map((p, idx) => {
+          const x = padLeft + (idx / (dataPoints.length - 1 || 1)) * chartWidth;
+          const y = height - padBottom - (p.val / maxVal) * chartHeight;
+          return { x, y, ...p };
+        });
+
+        const pathData = points.reduce((acc, p, idx) => `${acc} ${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
+        const goalY = height - padBottom - (habit.goal / maxVal) * chartHeight;
+        const unitLabel = habit.unit ? `(${habit.unit})` : '(units)';
+
+        let html = `
+          <div class="habit-card-header">
+            <div class="habit-info">
+              <div class="habit-header-top">
+                <h3>${habit.name}</h3>
+                ${habit.category ? `<span class="category-tag">${habit.category}</span>` : ''}
+              </div>
+              <div class="habit-meta">
+                <span>goal: ${habit.goal} ${habit.unit || ''}</span>
+                <span>range: ${chartRange === 'all' ? 'all time' : chartRange + ' days'}</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <svg viewBox="0 0 ${width} ${height}" class="time-chart">
+              <text x="${padLeft}" y="${padTop - 12}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">progress ${unitLabel}</text>
+              <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
+              <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
+              <text x="${padLeft - 8}" y="${padTop + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${maxVal}</text>
+              <text x="${padLeft - 8}" y="${height - padBottom + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">0</text>
+              <line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />
+              <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${habit.goal}</text>
+              <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" />
+              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} / ${habit.goal} ${habit.unit || ''}</title></circle>`).join('')}
+            </svg>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">highest record</span>
+              <span class="metric-value">${highestRecord} <small style="font-size:0.7rem; font-weight:400;">${habit.unit || ''}</small></span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">average</span>
+              <span class="metric-value">${avgVal} <small style="font-size:0.7rem; font-weight:400;">${habit.unit || ''}</small></span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">longest streak</span>
+              <span class="metric-value">${longestGoalStreak} <small style="font-size:0.7rem; font-weight:400;">days</small></span>
+            </div>
+          </div>
+        `;
+
+        card.innerHTML = html;
+        container.appendChild(card);
+      });
+    }
+
+    function render() {
+      const filterBarEl = document.getElementById('filterBar');
+      const addFormEl = document.getElementById('addForm');
+      const cardsSection = document.getElementById('cardsSection');
+      const chartSection = document.getElementById('chartSection');
+
+      if (viewMode === 'cards') {
+        filterBarEl.style.display = 'flex';
+        addFormEl.style.display = 'flex';
+        cardsSection.style.display = 'flex';
+        chartSection.style.display = 'none';
+        document.getElementById('currentViewBtn').classList.add('active');
+        document.getElementById('chartViewBtn').classList.remove('active');
+        renderFilterBar();
+        renderCards();
+      } else {
+        filterBarEl.style.display = 'none';
+        addFormEl.style.display = 'none';
+        cardsSection.style.display = 'none';
+        chartSection.style.display = 'flex';
+        document.getElementById('chartViewBtn').classList.add('active');
+        document.getElementById('currentViewBtn').classList.remove('active');
+        renderCharts();
+      }
+    }
+
+    document.getElementById('currentViewBtn').onclick = () => {
+      viewMode = 'cards';
+      render();
+    };
+
+    document.getElementById('chartViewBtn').onclick = () => {
+      viewMode = 'chart';
+      render();
+    };
+
+    document.querySelectorAll('.range-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        chartRange = btn.dataset.range;
+        renderCharts();
+      };
+    });
+
+    document.getElementById('addForm').onsubmit = (e) => {
+      e.preventDefault();
+      const input = document.getElementById('habitInput');
+      const val = input.value.trim().toLowerCase();
+      if (!val) return;
+      state.habits.push({
+        id: Date.now().toString(),
+        name: val,
+        color: '#e2b714',
+        category: currentFilter !== 'all' ? currentFilter : '',
+        unit: 'times',
+        goal: 1,
+        history: {}
+      });
+      input.value = '';
+      save();
+    };
+
+    const swatches = document.querySelectorAll('.color-swatch');
+    swatches.forEach(swatch => {
+      swatch.onclick = () => {
+        swatches.forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+        selectedColor = swatch.dataset.color;
+      };
+    });
+
+    const inputModal = document.getElementById('inputModal');
+    const inputDateEl = document.getElementById('inputDate');
+    const inputAmountEl = document.getElementById('inputAmount');
+
+    function openInputModal(habit) {
+      loggingHabitId = habit.id;
+      const today = todayKey();
+      document.getElementById('inputModalTitle').textContent = `log: ${habit.name}`;
+      document.getElementById('inputModalGoalInfo').textContent = `daily goal: ${habit.goal} ${habit.unit || ''}`;
+      document.getElementById('inputAmountLabel').textContent = `actual amount (${habit.unit || 'units'})`;
+      
+      inputDateEl.value = today;
+      inputAmountEl.value = habit.history[today] !== undefined ? habit.history[today] : '';
+      
+      inputModal.classList.add('open');
+      setTimeout(() => inputAmountEl.focus(), 50);
+    }
+
+    inputDateEl.onchange = () => {
+      const habit = state.habits.find(h => h.id === loggingHabitId);
+      if (!habit) return;
+      const selectedDate = inputDateEl.value;
+      inputAmountEl.value = habit.history[selectedDate] !== undefined ? habit.history[selectedDate] : '';
+    };
+
+    document.getElementById('cancelInput').onclick = () => {
+      inputModal.classList.remove('open');
+      loggingHabitId = null;
+    };
+
+    document.getElementById('inputForm').onsubmit = (e) => {
+      e.preventDefault();
+      const habit = state.habits.find(h => h.id === loggingHabitId);
+      if (habit && inputDateEl.value) {
+        const val = parseFloat(inputAmountEl.value) || 0;
+        setHabitValue(habit.id, inputDateEl.value, val);
+      }
+      inputModal.classList.remove('open');
+      loggingHabitId = null;
+    };
+
+    const editModal = document.getElementById('editModal');
+    function openEditModal(habit) {
+      editingId = habit.id;
+      document.getElementById('editName').value = habit.name;
+      selectedColor = habit.color || '#e2b714';
+      
+      swatches.forEach(s => {
+        if (s.dataset.color === selectedColor) {
+          s.classList.add('selected');
+        } else {
+          s.classList.remove('selected');
+        }
+      });
+
+      document.getElementById('editCategory').value = habit.category || '';
+      document.getElementById('editUnit').value = habit.unit || '';
+      document.getElementById('editGoal').value = habit.goal || 1;
+      editModal.classList.add('open');
+    }
+
+    document.getElementById('cancelEdit').onclick = () => {
+      editModal.classList.remove('open');
+      editingId = null;
+    };
+
+    document.getElementById('saveEdit').onclick = () => {
+      const habit = state.habits.find(h => h.id === editingId);
+      if (habit) {
+        habit.name = document.getElementById('editName').value.trim() || habit.name;
+        habit.color = selectedColor;
+        habit.category = document.getElementById('editCategory').value.trim().toLowerCase();
+        habit.unit = document.getElementById('editUnit').value.trim();
+        habit.goal = parseInt(document.getElementById('editGoal').value) || 1;
+        save();
+      }
+      editModal.classList.remove('open');
+      editingId = null;
+    };
+
+    inputModal.onclick = (e) => { if (e.target === inputModal) inputModal.classList.remove('open'); };
+    editModal.onclick = (e) => { if (e.target === editModal) editModal.classList.remove('open'); };
+
+    function cycleTheme() {
+      const next = THEMES[(THEMES.indexOf(state.theme) + 1) % THEMES.length];
+      applyTheme(next);
+    }
+    document.getElementById('themeBtn').onclick = cycleTheme;
+
+    applyTheme(state.theme);
+    render();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
