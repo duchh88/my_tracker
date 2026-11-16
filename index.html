@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>monkeyhabits - grid tracker</title>
+  <title>prokopton - grid tracker</title>
 
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#323437" />
@@ -16,29 +16,34 @@
 
   <style>
     :root, [data-theme="serika"] {
-      --bg: #323437; --bg-alt: #2c2e31; --main: #e2b714;
-      --sub: #646669; --text: #d1d0c5; --error: #ca4754;
+      --bg: #151617; --bg-alt: #2c2e31; --main: #e2b714;
+      --sub: #989ca2; --text: #deddd3; --error: #ca4754;
       --glass: rgba(50, 52, 55, 0.85);
     }
     [data-theme="carbon"] {
       --bg: #111111; --bg-alt: #191919; --main: #e2b714;
-      --sub: #525252; --text: #d1d0c5; --error: #ca4754;
+      --sub: #949292; --text: #d1d0c5; --error: #ca4754;
       --glass: rgba(17, 17, 17, 0.85);
     }
     [data-theme="dracula"] {
       --bg: #282a36; --bg-alt: #21222c; --main: #bd93f9;
-      --sub: #6272a4; --text: #f8f8f2; --error: #ff5555;
+      --sub: #7585b5; --text: #f8f8f2; --error: #ff5555;
       --glass: rgba(40, 42, 54, 0.85);
     }
     [data-theme="nord"] {
-      --bg: #2e3440; --bg-alt: #272c36; --main: #88c0d0;
-      --sub: #4c566a; --text: #eceff4; --error: #bf616a;
+      --bg:#272c36; --bg-alt: #3c4454 ; --main: #88c0d0;
+      --sub: #a8b8d3; --text: #eceff4; --error: #bf616a;
       --glass: rgba(46, 52, 64, 0.85);
     }
     [data-theme="matrix"] {
       --bg: #000000; --bg-alt: #0a0f0a; --main: #15ff00;
       --sub: #005500; --text: #d1ffcd; --error: #ff3333;
       --glass: rgba(0, 0, 0, 0.85);
+    }
+    [data-theme="yggdrasil"] {
+      --bg: #061518; --bg-alt: #0e272c; --main: #00e5ff;
+      --sub: #3d7a85; --text: #d2f7ff; --error: #ff4a6e;
+      --glass: rgba(6, 21, 24, 0.85);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -59,9 +64,15 @@
       display: flex; flex-direction: column; gap: 16px; padding-top: 12px;
     }
 
-    header { display: flex; justify-content: space-between; align-items: center; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .header-left { display: flex; flex-direction: column; gap: 3px; }
     .logo { display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: 700; }
     .logo span { color: var(--main); }
+    .stoic-quote { font-size: 0.72rem; color: var(--sub); font-style: italic; }
+
+    .header-controls {
+      display: flex; gap: 8px; align-items: center;
+    }
 
     .mode-bar {
       display: flex; gap: 10px; background: var(--bg-alt);
@@ -71,6 +82,25 @@
       background: none; border: none; color: inherit; font-family: inherit; cursor: pointer;
     }
     .mode-bar button:hover { color: var(--main); }
+
+    .settings-icon-btn {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .settings-icon-btn:hover {
+      border-color: var(--main);
+      color: var(--main);
+    }
 
     /* Sticky Floating Filter Wrapper */
     .sticky-filters {
@@ -439,7 +469,7 @@
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
-    /* Modals (Edit & Input) */
+    /* Modals (Edit, Input & Settings) */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
       display: none; place-items: center; padding: 20px; z-index: 50;
@@ -459,6 +489,36 @@
       color-scheme: dark;
     }
     .form-group input:focus { border-color: var(--main); }
+    
+    .settings-action-btn {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .settings-action-btn:hover {
+      border-color: var(--main);
+      color: var(--main);
+      background: var(--bg);
+    }
+    .settings-action-btn.danger {
+      border-color: rgba(202, 71, 84, 0.4);
+      color: var(--error);
+    }
+    .settings-action-btn.danger:hover {
+      background: var(--error);
+      color: var(--bg);
+      border-color: var(--error);
+    }
+
     .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
     .modal-buttons button {
       background: var(--bg-alt); border: 1px solid var(--sub); color: var(--text);
@@ -474,9 +534,15 @@
 <body>
   <div class="container">
     <header>
-      <div class="logo"><span>&gt;_</span> monkeyhabits</div>
-      <div class="mode-bar">
-        <button id="themeBtn">theme: <span id="themeName">serika</span></button>
+      <div class="header-left">
+        <div class="logo"><span>&gt;_</span> prokopton</div>
+        <div class="stoic-quote" id="stoicQuote">"Waste no more time arguing what a good man should be. Be one." - Marcus Aurelius</div>
+      </div>
+      <div class="header-controls">
+        <div class="mode-bar">
+          <button id="themeBtn">theme: <span id="themeName">serika</span></button>
+        </div>
+        <button class="settings-icon-btn" id="openSettingsBtn" title="Settings & Backup">⚙ settings</button>
       </div>
     </header>
 
@@ -484,9 +550,10 @@
     <div class="sticky-filters" id="stickyFilters">
       <div class="filter-bar" id="filterBar"></div>
       <div class="chart-range-bar" id="chartRangeBar" style="display: none;">
+        <button class="range-btn active" data-range="14">last 14d</button>
         <button class="range-btn" data-range="30">last 30d</button>
         <button class="range-btn" data-range="60">last 60d</button>
-        <button class="range-btn active" data-range="all">all time</button>
+        <button class="range-btn" data-range="all">all time</button>
       </div>
     </div>
 
@@ -507,16 +574,46 @@
     </section>
 
     <footer>
-      <span>monkeyhabits • local storage PWA</span>
+      <span>prokopton • local storage PWA</span>
     </footer>
   </div>
 
   <!-- Fixed Floating Bottom Navigation Bar -->
   <div class="bottom-nav-wrapper">
     <nav class="bottom-nav">
-      <button class="nav-tab active" id="currentViewBtn">grid view</button>
-      <button class="nav-tab" id="chartViewBtn">chart view</button>
+      <button class="nav-tab active" id="currentViewBtn">grid</button>
+      <button class="nav-tab" id="chartViewBtn">charts</button>
     </nav>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-box">
+      <h3>settings & data backup</h3>
+      <div class="modal-subtitle">manage your local storage & backup</div>
+      
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+        <button type="button" class="settings-action-btn" id="exportDataBtn">
+          <span>💾 export backup (.json)</span>
+          <span style="font-size: 0.7rem; color: var(--sub);">download</span>
+        </button>
+
+        <button type="button" class="settings-action-btn" id="importDataBtn">
+          <span>📂 restore backup (.json)</span>
+          <span style="font-size: 0.7rem; color: var(--sub);">upload</span>
+        </button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;" />
+
+        <button type="button" class="settings-action-btn danger" id="resetDataBtn">
+          <span>⚠️ reset all data</span>
+          <span style="font-size: 0.7rem; color: inherit;">clear</span>
+        </button>
+      </div>
+
+      <div class="modal-buttons" style="margin-top: 10px;">
+        <button type="button" class="primary" id="closeSettingsBtn">close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Input Progress Modal -->
@@ -580,14 +677,39 @@
   </div>
 
   <script>
-    const THEMES = ['serika', 'carbon', 'dracula', 'nord', 'matrix'];
-    const STORAGE_KEY = 'monkeyhabits_habitkit_v12';
+    const THEMES = ['serika', 'carbon', 'dracula', 'nord', 'matrix', 'yggdrasil'];
+    const STORAGE_KEY = 'prokopton_habitkit_v12';
+
+    const STOIC_QUOTES = [
+      '"Waste no more time arguing. Be one." - Marcus Aurelius',
+      '"First say to yourself what you would be; then do what you have to do." - Epictetus',
+      '"We suffer more often in imagination than in reality." - Seneca',
+      '"He who lives harmony with himself lives harmony with the universe." - Marcus Aurelius',
+      '"Luck is what happens when preparation meets opportunity." - Seneca',
+      '"No man is free who is not master of himself." - Epictetus',
+      '"Control your passions lest they control you." - Epictetus',
+      '"Begin at once to live, and count each separate day as a separate life." - Seneca',
+      '"The obstacle is the way." - Marcus Aurelius',
+      '"Dwell on the beauty of life. Watch the stars." - Marcus Aurelius'
+    ];
+
+    function initStoicQuote() {
+      const randomQuote = STOIC_QUOTES[Math.floor(Math.random() * STOIC_QUOTES.length)];
+      document.getElementById('stoicQuote').textContent = randomQuote;
+    }
+
     const todayKey = () => {
       const now = new Date();
       const offset = now.getTimezoneOffset();
       const local = new Date(now.getTime() - offset * 60 * 1000);
       return local.toISOString().split('T')[0];
     };
+
+    function formatDateDDMMYY(dateStr) {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
+    }
 
     let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
       theme: 'serika',
@@ -599,7 +721,7 @@
 
     let currentFilter = 'all';
     let viewMode = 'cards';
-    let chartRange = 'all';
+    let chartRange = '14';
     let editingId = null;
     let loggingHabitId = null;
     let selectedColor = '#e2b714';
@@ -826,7 +948,8 @@
         card.className = 'habit-card';
         card.style.setProperty('--habit-accent', habit.color || '#e2b714');
 
-        let daysCount = 30;
+        let daysCount = 14;
+        if (chartRange === '30') daysCount = 30;
         if (chartRange === '60') daysCount = 60;
         if (chartRange === 'all') {
           const dates = Object.keys(habit.history);
@@ -835,9 +958,9 @@
             const earliest = new Date(dates[0]);
             const now = new Date();
             const diffTime = Math.abs(now - earliest);
-            daysCount = Math.max(30, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+            daysCount = Math.max(14, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
           } else {
-            daysCount = 30;
+            daysCount = 14;
           }
         }
 
@@ -851,6 +974,9 @@
           const val = habit.history[dateStr] || 0;
           dataPoints.push({ date: dateStr, val });
         }
+
+        const startDateFormatted = formatDateDDMMYY(dataPoints[0].date);
+        const endDateFormatted = formatDateDDMMYY(dataPoints[dataPoints.length - 1].date);
 
         const allVals = Object.values(habit.history);
         const highestRecord = allVals.length > 0 ? Math.max(...allVals) : 0;
@@ -902,6 +1028,8 @@
               <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${habit.goal}</text>
               <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" />
               ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} / ${habit.goal} ${habit.unit || ''}</title></circle>`).join('')}
+              <text x="${padLeft}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit">${startDateFormatted}</text>
+              <text x="${width - padRight}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${endDateFormatted}</text>
             </svg>
           </div>
           <div class="metrics-grid">
@@ -1002,6 +1130,58 @@
       };
     });
 
+    // Settings Modal Logic
+    const settingsModal = document.getElementById('settingsModal');
+    document.getElementById('openSettingsBtn').onclick = () => settingsModal.classList.add('open');
+    document.getElementById('closeSettingsBtn').onclick = () => settingsModal.classList.remove('open');
+    settingsModal.onclick = (e) => { if (e.target === settingsModal) settingsModal.classList.remove('open'); };
+
+    // Export Backup JSON
+    document.getElementById('exportDataBtn').onclick = () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `prokopton_backup_${todayKey()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    };
+
+    // Import / Restore Backup JSON
+    const importFileInput = document.getElementById('importFileInput');
+    document.getElementById('importDataBtn').onclick = () => importFileInput.click();
+
+    importFileInput.onchange = (e) => {
+      const fileReader = new FileReader();
+      if (e.target.files[0]) {
+        fileReader.readAsText(e.target.files[0], "UTF-8");
+        fileReader.onload = (event) => {
+          try {
+            const parsed = JSON.parse(event.target.result);
+            if (parsed && parsed.habits) {
+              state = parsed;
+              save();
+              applyTheme(state.theme || 'serika');
+              alert('Backup restored successfully!');
+              settingsModal.classList.remove('open');
+            } else {
+              alert('Invalid backup file format.');
+            }
+          } catch (err) {
+            alert('Failed to parse JSON backup file.');
+          }
+        };
+      }
+    };
+
+    // Reset Data
+    document.getElementById('resetDataBtn').onclick = () => {
+      if (confirm('Are you sure you want to reset all habits and history? This cannot be undone unless you have exported a backup.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    };
+
     const inputModal = document.getElementById('inputModal');
     const inputDateEl = document.getElementById('inputDate');
     const inputAmountEl = document.getElementById('inputAmount');
@@ -1090,6 +1270,7 @@
     }
     document.getElementById('themeBtn').onclick = cycleTheme;
 
+    initStoicQuote();
     applyTheme(state.theme);
     render();
 

@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./yggdrasil-512.png",
+      "src": "./stoic_512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
