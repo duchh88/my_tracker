@@ -32,7 +32,7 @@
     }
     [data-theme="nord"] {
       --bg:#272c36; --bg-alt: #3c4454 ; --main: #88c0d0;
-      --sub: #a8b8d3; --text: #eceff4; --error: #bf616a;
+      --sub: #96a9cb; --text: #eceff4; --error: #bf616a;
       --glass: rgba(46, 52, 64, 0.85);
     }
     [data-theme="matrix"] {
@@ -1136,15 +1136,50 @@
     document.getElementById('closeSettingsBtn').onclick = () => settingsModal.classList.remove('open');
     settingsModal.onclick = (e) => { if (e.target === settingsModal) settingsModal.classList.remove('open'); };
 
-    // Export Backup JSON
-    document.getElementById('exportDataBtn').onclick = () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `prokopton_backup_${todayKey()}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+    // Export Backup JSON (PWA Compatible via Share Sheet / Blob)
+    document.getElementById('exportDataBtn').onclick = async () => {
+      const jsonString = JSON.stringify(state, null, 2);
+      const fileName = `prokopton_backup_${todayKey()}.json`;
+      
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // Use native Web Share API if available (best for iOS PWA to save to Files)
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'application/json' })] })) {
+        try {
+          const file = new File([blob], fileName, { type: 'application/json' });
+          await navigator.share({
+            files: [file],
+            title: 'Prokopton Backup',
+            text: 'Your local habit tracker backup JSON file.'
+          });
+          return;
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.log('Share failed, falling back...', err);
+          } else {
+            return; // User cancelled share sheet
+          }
+        }
+      }
+
+      // Fallback for standard browsers / blob URL download
+      try {
+        const url = URL.createObjectURL(blob);
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.href = url;
+        downloadAnchor.download = fileName;
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        document.body.removeChild(downloadAnchor);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (e) {
+        // Ultimate fallback: Open data URI in new tab if blob fails
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+        const win = window.open(dataStr, '_blank');
+        if (!win) {
+          alert('Popup blocked. Please check your browser settings or use Safari.');
+        }
+      }
     };
 
     // Import / Restore Backup JSON
