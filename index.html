@@ -465,7 +465,7 @@
     .chart-stage {
       position: relative;
       width: 100%;
-      height: 200px; /* Adjust chart plot height freely here */
+      height: 180px; /* Adjust chart plot height freely here */
     }
     .time-chart {
       width: 100%;
@@ -899,6 +899,12 @@
 
     footer {
       text-align: center; font-size: 0.7rem; color: var(--sub); padding-top: 6px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .version-meta {
+      font-size: 0.65rem;
+      color: var(--sub);
+      opacity: 0.85;
     }
   </style>
 </head>
@@ -946,6 +952,7 @@
 
     <footer>
       <span>prokopton • local storage PWA</span>
+      <span class="version-meta" id="versionMeta"></span>
     </footer>
   </div>
 
@@ -1080,6 +1087,8 @@
   <script>
     const THEMES = ['serika', 'carbon', 'dracula', 'nord', 'matrix', 'yggdrasil'];
     const STORAGE_KEY = 'prokopton_habitkit_v12';
+    const APP_VERSION = 'v12.3';
+    const LAST_UPDATED = '2026-11-27 13:37 +07';
     const WEEKDAY_LABELS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const MONTH_NAMES = [
       'january', 'february', 'march', 'april', 'may', 'june',
@@ -1102,6 +1111,13 @@
     function initStoicQuote() {
       const randomQuote = STOIC_QUOTES[Math.floor(Math.random() * STOIC_QUOTES.length)];
       document.getElementById('stoicQuote').textContent = randomQuote;
+    }
+
+    function renderVersionMeta() {
+      const el = document.getElementById('versionMeta');
+      if (el) {
+        el.textContent = `version ${APP_VERSION} • last updated ${LAST_UPDATED}`;
+      }
     }
 
     function dateToKey(dateObj) {
@@ -2297,6 +2313,7 @@
     document.getElementById('themeBtn').onclick = cycleTheme;
 
     initStoicQuote();
+    renderVersionMeta();
     applyTheme(state.theme);
     render();
 
