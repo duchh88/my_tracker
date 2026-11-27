@@ -17,7 +17,7 @@
 
   <style>
     :root, [data-theme="serika"] {
-      --bg: #151617; --bg-alt: #2c2e31; --main: #e2b714;
+      --bg: #151617; --bg-alt: #1e232c; --main: #e2b714;
       --sub: #989ca2; --text: #deddd3; --error: #ca4754;
       --glass: rgba(50, 52, 55, 0.85);
     }
@@ -217,6 +217,7 @@
       color: var(--sub);
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     /* High Contrast Action Buttons */
@@ -361,6 +362,34 @@
       font-weight: 700;
     }
 
+    /* Per-Card Sub-Metric Selector Bar */
+    .metric-selector-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .metric-select-btn {
+      background: var(--bg);
+      border: 1px solid var(--sub);
+      color: var(--sub);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .metric-select-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .metric-select-btn.active {
+      background: var(--habit-accent, var(--main));
+      color: var(--bg);
+      border-color: var(--habit-accent, var(--main));
+      font-weight: 700;
+    }
+
     .chart-wrapper {
       background: var(--bg);
       border-radius: 8px;
@@ -470,6 +499,61 @@
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
+    /* Sub-Metric Editor inside Edit Modal */
+    .submetric-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .submetric-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .submetric-row input {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      border-radius: 6px;
+      padding: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      outline: none;
+    }
+    .submetric-row input.unit-input {
+      max-width: 85px;
+    }
+    .submetric-row input:focus {
+      border-color: var(--main);
+    }
+    .remove-sub-btn {
+      background: var(--bg-alt);
+      border: 1px solid rgba(202, 71, 84, 0.5);
+      color: var(--error);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .add-sub-btn {
+      align-self: flex-start;
+      background: var(--bg-alt);
+      border: 1px dashed var(--sub);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .add-sub-btn:hover {
+      border-color: var(--main);
+      color: var(--main);
+    }
+
     /* Modals (Edit, Input & Settings) */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
@@ -478,7 +562,7 @@
     .modal-backdrop.open { display: grid; }
     .modal-box {
       background: var(--bg); border: 1px solid var(--sub); border-radius: 10px;
-      width: min(92vw, 400px); padding: 20px; display: flex; flex-direction: column; gap: 16px;
+      width: min(92vw, 420px); padding: 20px; display: flex; flex-direction: column; gap: 16px;
       max-height: 90vh; overflow-y: auto;
     }
     .modal-box h3 { font-size: 1rem; color: var(--main); }
@@ -490,6 +574,15 @@
       color-scheme: dark;
     }
     .form-group input:focus { border-color: var(--main); }
+
+    .submetric-divider {
+      border-top: 1px solid var(--bg-alt);
+      padding-top: 10px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--main);
+      font-weight: 700;
+    }
     
     .settings-action-btn {
       background: var(--bg-alt);
@@ -561,7 +654,7 @@
     <!-- Quick Add Input -->
     <form class="input-row" id="addForm">
       <span class="prompt-char">+</span>
-      <input type="text" id="habitInput" placeholder="add habit (e.g. read, gym, code)..." autocomplete="off" />
+      <input type="text" id="habitInput" placeholder="add habit (e.g. cycling, read, gym)..." autocomplete="off" />
     </form>
 
     <!-- Current View Section (Cards with Heatmaps) -->
@@ -630,6 +723,7 @@
         <label id="inputAmountLabel">actual amount</label>
         <input type="number" id="inputAmount" min="0" step="any" placeholder="0" required />
       </div>
+      <div id="inputSubmetricsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
       <div class="modal-buttons">
         <button type="button" id="cancelInput">cancel</button>
         <button type="submit" class="primary">save log</button>
@@ -663,12 +757,17 @@
         <input type="text" id="editCategory" placeholder="e.g. health, work, study" />
       </div>
       <div class="form-group">
-        <label>unit (e.g. pages, min, glasses, km)</label>
+        <label>main unit (e.g. km, pages, min)</label>
         <input type="text" id="editUnit" />
       </div>
       <div class="form-group">
-        <label>daily goal quantity</label>
+        <label>daily main goal quantity</label>
         <input type="number" id="editGoal" min="1" />
+      </div>
+      <div class="form-group">
+        <label>sub-metrics (shown in chart view)</label>
+        <div class="submetric-list" id="editSubmetricsList"></div>
+        <button type="button" class="add-sub-btn" id="addSubmetricBtn">+ add sub-metric</button>
       </div>
       <div class="modal-buttons">
         <button type="button" id="cancelEdit">cancel</button>
@@ -712,18 +811,40 @@
       return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
     }
 
-    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    function normalizeHabit(habit) {
+      return {
+        ...habit,
+        history: habit.history || {},
+        subMetrics: Array.isArray(habit.subMetrics)
+          ? habit.subMetrics.map((sm, idx) => ({
+              id: sm.id || `sub_${idx}_${Date.now()}`,
+              name: sm.name || '',
+              unit: sm.unit || '',
+              history: sm.history || {}
+            }))
+          : []
+      };
+    }
+
+    let rawState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
       theme: 'serika',
       habits: [
-        { id: '1', name: 'read books', color: '#61afef', category: 'study', unit: 'pages', goal: 20, history: {} },
-        { id: '2', name: 'deep work', color: '#c678dd', category: 'work', unit: 'min', goal: 60, history: {} }
+        { id: '1', name: 'read books', color: '#61afef', category: 'study', unit: 'pages', goal: 20, history: {}, subMetrics: [] },
+        { id: '2', name: 'deep work', color: '#c678dd', category: 'work', unit: 'min', goal: 60, history: {}, subMetrics: [] }
       ]
+    };
+
+    let state = {
+      theme: rawState.theme || 'serika',
+      habits: (rawState.habits || []).map(normalizeHabit)
     };
 
     let currentFilter = 'all';
     let viewMode = 'cards';
     let chartRange = '14';
+    let selectedChartMetricByHabit = {}; // habitId -> 'main' or subMetric.id
     let editingId = null;
+    let draftSubmetrics = [];
     let loggingHabitId = null;
     let selectedColor = '#e2b714';
 
@@ -763,8 +884,8 @@
       return streak;
     }
 
-    function getLongestGoalStreak(habit) {
-      const dates = Object.keys(habit.history).sort();
+    function getLongestStreakFromHistory(historyObj, threshold = null) {
+      const dates = Object.keys(historyObj || {}).sort();
       if (dates.length === 0) return 0;
 
       let maxStreak = 0;
@@ -772,8 +893,9 @@
       let prevDate = null;
 
       dates.forEach(dateStr => {
-        const val = habit.history[dateStr] || 0;
-        if (val >= habit.goal) {
+        const val = historyObj[dateStr] || 0;
+        const qualifies = threshold !== null ? val >= threshold : val > 0;
+        if (qualifies) {
           if (!prevDate) {
             currentStreak = 1;
           } else {
@@ -804,14 +926,27 @@
       return 1;
     }
 
-    function setHabitValue(habitId, dateStr, numericValue) {
+    function setHabitEntries(habitId, dateStr, mainValue, subMetricValues = {}) {
       const habit = state.habits.find(h => h.id === habitId);
       if (!habit) return;
-      if (numericValue <= 0) {
+
+      if (mainValue <= 0) {
         delete habit.history[dateStr];
       } else {
-        habit.history[dateStr] = numericValue;
+        habit.history[dateStr] = mainValue;
       }
+
+      habit.subMetrics = habit.subMetrics || [];
+      habit.subMetrics.forEach(sm => {
+        sm.history = sm.history || {};
+        const subVal = subMetricValues[sm.id];
+        if (subVal === undefined || subVal === null || isNaN(subVal) || subVal <= 0) {
+          delete sm.history[dateStr];
+        } else {
+          sm.history[dateStr] = subVal;
+        }
+      });
+
       save();
     }
 
@@ -863,6 +998,7 @@
         const todayVal = habit.history[today] || 0;
         const isDoneToday = todayVal >= habit.goal;
         const habitColor = habit.color || '#e2b714';
+        const subCount = (habit.subMetrics || []).length;
 
         const card = document.createElement('div');
         card.className = 'habit-card';
@@ -878,6 +1014,7 @@
               <div class="habit-meta">
                 <span>goal: ${habit.goal} ${habit.unit || ''}</span>
                 <span>streak: ${streak}d 🔥</span>
+                ${subCount > 0 ? `<span>+${subCount} sub-metric${subCount > 1 ? 's' : ''}</span>` : ''}
               </div>
             </div>
             <div class="habit-actions">
@@ -924,6 +1061,7 @@
         card.querySelector('.edit-btn').onclick = () => openEditModal(habit);
         card.querySelector('.delete-btn').onclick = () => {
           state.habits = state.habits.filter(h => h.id !== habit.id);
+          delete selectedChartMetricByHabit[habit.id];
           if (!state.habits.some(h => (h.category || '').toLowerCase() === currentFilter)) {
             currentFilter = 'all';
           }
@@ -933,6 +1071,33 @@
 
         grid.appendChild(card);
       });
+    }
+
+    function getActiveMetricConfig(habit) {
+      const chosenId = selectedChartMetricByHabit[habit.id] || 'main';
+      if (chosenId !== 'main') {
+        const found = (habit.subMetrics || []).find(sm => sm.id === chosenId);
+        if (found) {
+          return {
+            id: found.id,
+            label: found.name || 'sub-metric',
+            unit: found.unit || '',
+            history: found.history || {},
+            goal: null,
+            streakLabel: 'active streak',
+            longestStreak: getLongestStreakFromHistory(found.history || {}, null)
+          };
+        }
+      }
+      return {
+        id: 'main',
+        label: habit.unit ? `main (${habit.unit})` : 'main',
+        unit: habit.unit || '',
+        history: habit.history || {},
+        goal: habit.goal || 1,
+        streakLabel: 'longest streak',
+        longestStreak: getLongestStreakFromHistory(habit.history || {}, habit.goal || 1)
+      };
     }
 
     function renderCharts() {
@@ -949,14 +1114,19 @@
         card.className = 'habit-card';
         card.style.setProperty('--habit-accent', habit.color || '#e2b714');
 
+        const activeMetric = getActiveMetricConfig(habit);
+        const metricHistory = activeMetric.history;
+
         let daysCount = 14;
         if (chartRange === '30') daysCount = 30;
         if (chartRange === '60') daysCount = 60;
         if (chartRange === 'all') {
-          const dates = Object.keys(habit.history);
-          if (dates.length > 0) {
-            dates.sort();
-            const earliest = new Date(dates[0]);
+          const allHabitDates = [
+            ...Object.keys(habit.history || {}),
+            ...(habit.subMetrics || []).flatMap(sm => Object.keys(sm.history || {}))
+          ].sort();
+          if (allHabitDates.length > 0) {
+            const earliest = new Date(allHabitDates[0]);
             const now = new Date();
             const diffTime = Math.abs(now - earliest);
             daysCount = Math.max(14, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
@@ -972,18 +1142,17 @@
           const offset = d.getTimezoneOffset();
           const local = new Date(d.getTime() - offset * 60 * 1000);
           const dateStr = local.toISOString().split('T')[0];
-          const val = habit.history[dateStr] || 0;
+          const val = metricHistory[dateStr] || 0;
           dataPoints.push({ date: dateStr, val });
         }
 
         const startDateFormatted = formatDateDDMMYY(dataPoints[0].date);
         const endDateFormatted = formatDateDDMMYY(dataPoints[dataPoints.length - 1].date);
 
-        const allVals = Object.values(habit.history);
+        const allVals = Object.values(metricHistory).filter(v => typeof v === 'number');
         const highestRecord = allVals.length > 0 ? Math.max(...allVals) : 0;
         const sumVals = allVals.reduce((a, b) => a + b, 0);
         const avgVal = allVals.length > 0 ? (sumVals / allVals.length).toFixed(1) : '0';
-        const longestGoalStreak = getLongestGoalStreak(habit);
 
         const width = 540;
         const height = 140;
@@ -993,7 +1162,11 @@
         const padBottom = 30;
         const chartWidth = width - padLeft - padRight;
         const chartHeight = height - padTop - padBottom;
-        const maxVal = Math.max(habit.goal, ...dataPoints.map(p => p.val), 1);
+        const maxVal = Math.max(
+          activeMetric.goal || 0,
+          ...dataPoints.map(p => p.val),
+          1
+        );
 
         const points = dataPoints.map((p, idx) => {
           const x = padLeft + (idx / (dataPoints.length - 1 || 1)) * chartWidth;
@@ -1002,8 +1175,18 @@
         });
 
         const pathData = points.reduce((acc, p, idx) => `${acc} ${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
-        const goalY = height - padBottom - (habit.goal / maxVal) * chartHeight;
-        const unitLabel = habit.unit ? `(${habit.unit})` : '(units)';
+        const goalY = activeMetric.goal !== null
+          ? height - padBottom - (activeMetric.goal / maxVal) * chartHeight
+          : null;
+        const unitLabel = activeMetric.unit ? `(${activeMetric.unit})` : '(units)';
+
+        const subMetrics = habit.subMetrics || [];
+        const selectorButtonsHtml = [
+          `<button type="button" class="metric-select-btn ${activeMetric.id === 'main' ? 'active' : ''}" data-metric-id="main">main${habit.unit ? ` · ${habit.unit}` : ''}</button>`,
+          ...subMetrics
+            .filter(sm => sm.name.trim())
+            .map(sm => `<button type="button" class="metric-select-btn ${activeMetric.id === sm.id ? 'active' : ''}" data-metric-id="${sm.id}">${sm.name}${sm.unit ? ` · ${sm.unit}` : ''}</button>`)
+        ].join('');
 
         let html = `
           <div class="habit-card-header">
@@ -1013,22 +1196,27 @@
                 ${habit.category ? `<span class="category-tag">${habit.category}</span>` : ''}
               </div>
               <div class="habit-meta">
-                <span>goal: ${habit.goal} ${habit.unit || ''}</span>
+                <span>metric: ${activeMetric.label}</span>
                 <span>range: ${chartRange === 'all' ? 'all time' : chartRange + ' days'}</span>
               </div>
             </div>
           </div>
+          <div class="metric-selector-bar">
+            ${selectorButtonsHtml}
+          </div>
           <div class="chart-wrapper">
             <svg viewBox="0 0 ${width} ${height}" class="time-chart">
-              <text x="${padLeft}" y="${padTop - 12}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">progress ${unitLabel}</text>
+              <text x="${padLeft}" y="${padTop - 12}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">${activeMetric.label} ${unitLabel}</text>
               <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
               <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
               <text x="${padLeft - 8}" y="${padTop + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${maxVal}</text>
               <text x="${padLeft - 8}" y="${height - padBottom + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">0</text>
-              <line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />
-              <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${habit.goal}</text>
+              ${goalY !== null ? `
+                <line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />
+                <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${activeMetric.goal}</text>
+              ` : ''}
               <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" />
-              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} / ${habit.goal} ${habit.unit || ''}</title></circle>`).join('')}
+              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} ${activeMetric.unit || ''}</title></circle>`).join('')}
               <text x="${padLeft}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit">${startDateFormatted}</text>
               <text x="${width - padRight}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${endDateFormatted}</text>
             </svg>
@@ -1036,20 +1224,28 @@
           <div class="metrics-grid">
             <div class="metric-card">
               <span class="metric-label">highest record</span>
-              <span class="metric-value">${highestRecord} <small style="font-size:0.7rem; font-weight:400;">${habit.unit || ''}</small></span>
+              <span class="metric-value">${highestRecord} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.unit || ''}</small></span>
             </div>
             <div class="metric-card">
               <span class="metric-label">average</span>
-              <span class="metric-value">${avgVal} <small style="font-size:0.7rem; font-weight:400;">${habit.unit || ''}</small></span>
+              <span class="metric-value">${avgVal} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.unit || ''}</small></span>
             </div>
             <div class="metric-card">
-              <span class="metric-label">longest streak</span>
-              <span class="metric-value">${longestGoalStreak} <small style="font-size:0.7rem; font-weight:400;">days</small></span>
+              <span class="metric-label">${activeMetric.streakLabel}</span>
+              <span class="metric-value">${activeMetric.longestStreak} <small style="font-size:0.7rem; font-weight:400;">days</small></span>
             </div>
           </div>
         `;
 
         card.innerHTML = html;
+
+        card.querySelectorAll('.metric-select-btn').forEach(btn => {
+          btn.onclick = () => {
+            selectedChartMetricByHabit[habit.id] = btn.dataset.metricId;
+            renderCharts();
+          };
+        });
+
         container.appendChild(card);
       });
     }
@@ -1116,7 +1312,8 @@
         category: currentFilter !== 'all' ? currentFilter : '',
         unit: 'times',
         goal: 1,
-        history: {}
+        history: {},
+        subMetrics: []
       });
       input.value = '';
       save();
@@ -1144,7 +1341,6 @@
       
       const blob = new Blob([jsonString], { type: 'application/json' });
       
-      // Use native Web Share API if available (best for iOS PWA to save to Files)
       if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'application/json' })] })) {
         try {
           const file = new File([blob], fileName, { type: 'application/json' });
@@ -1158,12 +1354,11 @@
           if (err.name !== 'AbortError') {
             console.log('Share failed, falling back...', err);
           } else {
-            return; // User cancelled share sheet
+            return;
           }
         }
       }
 
-      // Fallback for standard browsers / blob URL download
       try {
         const url = URL.createObjectURL(blob);
         const downloadAnchor = document.createElement('a');
@@ -1174,7 +1369,6 @@
         document.body.removeChild(downloadAnchor);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } catch (e) {
-        // Ultimate fallback: Open data URI in new tab if blob fails
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const win = window.open(dataStr, '_blank');
         if (!win) {
@@ -1195,9 +1389,12 @@
           try {
             const parsed = JSON.parse(event.target.result);
             if (parsed && parsed.habits) {
-              state = parsed;
+              state = {
+                theme: parsed.theme || 'serika',
+                habits: parsed.habits.map(normalizeHabit)
+              };
               save();
-              applyTheme(state.theme || 'serika');
+              applyTheme(state.theme);
               alert('Backup restored successfully!');
               settingsModal.classList.remove('open');
             } else {
@@ -1218,18 +1415,44 @@
       }
     };
 
+    // Input Progress Modal Logic
     const inputModal = document.getElementById('inputModal');
     const inputDateEl = document.getElementById('inputDate');
     const inputAmountEl = document.getElementById('inputAmount');
+    const inputSubmetricsContainer = document.getElementById('inputSubmetricsContainer');
+
+    function populateInputValuesForDate(habit, targetDate) {
+      inputAmountEl.value = habit.history[targetDate] !== undefined ? habit.history[targetDate] : '';
+      inputSubmetricsContainer.innerHTML = '';
+
+      const subs = (habit.subMetrics || []).filter(sm => sm.name.trim());
+      if (subs.length > 0) {
+        const header = document.createElement('div');
+        header.className = 'submetric-divider';
+        header.textContent = 'sub-metrics (optional)';
+        inputSubmetricsContainer.appendChild(header);
+
+        subs.forEach(sm => {
+          const group = document.createElement('div');
+          group.className = 'form-group';
+          const existingVal = sm.history && sm.history[targetDate] !== undefined ? sm.history[targetDate] : '';
+          group.innerHTML = `
+            <label>${sm.name}${sm.unit ? ` (${sm.unit})` : ''}</label>
+            <input type="number" step="any" min="0" placeholder="0" data-submetric-id="${sm.id}" value="${existingVal}" />
+          `;
+          inputSubmetricsContainer.appendChild(group);
+        });
+      }
+    }
 
     function openInputModal(habit, targetDate = todayKey()) {
       loggingHabitId = habit.id;
       document.getElementById('inputModalTitle').textContent = `log: ${habit.name}`;
       document.getElementById('inputModalGoalInfo').textContent = `daily goal: ${habit.goal} ${habit.unit || ''}`;
-      document.getElementById('inputAmountLabel').textContent = `actual amount (${habit.unit || 'units'})`;
+      document.getElementById('inputAmountLabel').textContent = `main amount (${habit.unit || 'units'})`;
       
       inputDateEl.value = targetDate;
-      inputAmountEl.value = habit.history[targetDate] !== undefined ? habit.history[targetDate] : '';
+      populateInputValuesForDate(habit, targetDate);
       
       inputModal.classList.add('open');
       setTimeout(() => inputAmountEl.focus(), 50);
@@ -1238,8 +1461,7 @@
     inputDateEl.onchange = () => {
       const habit = state.habits.find(h => h.id === loggingHabitId);
       if (!habit) return;
-      const selectedDate = inputDateEl.value;
-      inputAmountEl.value = habit.history[selectedDate] !== undefined ? habit.history[selectedDate] : '';
+      populateInputValuesForDate(habit, inputDateEl.value);
     };
 
     document.getElementById('cancelInput').onclick = () => {
@@ -1251,14 +1473,67 @@
       e.preventDefault();
       const habit = state.habits.find(h => h.id === loggingHabitId);
       if (habit && inputDateEl.value) {
-        const val = parseFloat(inputAmountEl.value) || 0;
-        setHabitValue(habit.id, inputDateEl.value, val);
+        const mainVal = parseFloat(inputAmountEl.value) || 0;
+        const subVals = {};
+        inputSubmetricsContainer.querySelectorAll('input[data-submetric-id]').forEach(inp => {
+          const raw = inp.value.trim();
+          subVals[inp.dataset.submetricId] = raw === '' ? 0 : parseFloat(raw);
+        });
+        setHabitEntries(habit.id, inputDateEl.value, mainVal, subVals);
       }
       inputModal.classList.remove('open');
       loggingHabitId = null;
     };
 
+    // Edit Habit Modal & Sub-Metrics Editor
     const editModal = document.getElementById('editModal');
+    const editSubmetricsList = document.getElementById('editSubmetricsList');
+
+    function syncDraftSubmetricsFromDOM() {
+      const rows = editSubmetricsList.querySelectorAll('.submetric-row');
+      draftSubmetrics = Array.from(rows).map(row => {
+        const id = row.dataset.id;
+        const existing = draftSubmetrics.find(d => d.id === id);
+        return {
+          id,
+          name: row.querySelector('.sub-name-input').value.trim().toLowerCase(),
+          unit: row.querySelector('.sub-unit-input').value.trim(),
+          history: existing ? existing.history : {}
+        };
+      });
+    }
+
+    function renderSubmetricRows() {
+      editSubmetricsList.innerHTML = '';
+      draftSubmetrics.forEach(sm => {
+        const row = document.createElement('div');
+        row.className = 'submetric-row';
+        row.dataset.id = sm.id;
+        row.innerHTML = `
+          <input type="text" class="sub-name-input" placeholder="name (e.g. speed)" value="${sm.name}" />
+          <input type="text" class="sub-unit-input unit-input" placeholder="unit (km/h)" value="${sm.unit}" />
+          <button type="button" class="remove-sub-btn" title="Remove">✕</button>
+        `;
+        row.querySelector('.remove-sub-btn').onclick = () => {
+          syncDraftSubmetricsFromDOM();
+          draftSubmetrics = draftSubmetrics.filter(item => item.id !== sm.id);
+          renderSubmetricRows();
+        };
+        editSubmetricsList.appendChild(row);
+      });
+    }
+
+    document.getElementById('addSubmetricBtn').onclick = () => {
+      syncDraftSubmetricsFromDOM();
+      draftSubmetrics.push({
+        id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: '',
+        unit: '',
+        history: {}
+      });
+      renderSubmetricRows();
+    };
+
     function openEditModal(habit) {
       editingId = habit.id;
       document.getElementById('editName').value = habit.name;
@@ -1275,26 +1550,48 @@
       document.getElementById('editCategory').value = habit.category || '';
       document.getElementById('editUnit').value = habit.unit || '';
       document.getElementById('editGoal').value = habit.goal || 1;
+
+      draftSubmetrics = (habit.subMetrics || []).map(sm => ({
+        id: sm.id,
+        name: sm.name,
+        unit: sm.unit,
+        history: { ...(sm.history || {}) }
+      }));
+      renderSubmetricRows();
+
       editModal.classList.add('open');
     }
 
     document.getElementById('cancelEdit').onclick = () => {
       editModal.classList.remove('open');
       editingId = null;
+      draftSubmetrics = [];
     };
 
     document.getElementById('saveEdit').onclick = () => {
       const habit = state.habits.find(h => h.id === editingId);
       if (habit) {
+        syncDraftSubmetricsFromDOM();
         habit.name = document.getElementById('editName').value.trim() || habit.name;
         habit.color = selectedColor;
         habit.category = document.getElementById('editCategory').value.trim().toLowerCase();
         habit.unit = document.getElementById('editUnit').value.trim();
         habit.goal = parseInt(document.getElementById('editGoal').value) || 1;
+        habit.subMetrics = draftSubmetrics.filter(sm => sm.name.length > 0);
+
+        if (
+          selectedChartMetricByHabit[habit.id] &&
+          selectedChartMetricByHabit[habit.id] !== 'main' &&
+          !habit.subMetrics.some(sm => sm.id === selectedChartMetricByHabit[habit.id])
+        ) {
+          selectedChartMetricByHabit[habit.id] = 'main';
+        }
+
         save();
       }
       editModal.classList.remove('open');
       editingId = null;
+      draftSubmetrics = [];
     };
 
     inputModal.onclick = (e) => { if (e.target === inputModal) inputModal.classList.remove('open'); };
