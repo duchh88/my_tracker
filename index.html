@@ -409,18 +409,80 @@
       font-weight: 700;
     }
 
-    .chart-wrapper {
+    /* Static-Text Chart Box: HTML labels never stretch when chart height changes */
+    .chart-plot-box {
+      position: relative;
       background: var(--bg);
       border-radius: 8px;
-      padding: 10px 10px 8px;
+      padding: 28px 10px 24px 38px;
       width: 100%;
       overflow: hidden;
     }
+    .chart-title-label {
+      position: absolute;
+      top: 8px;
+      left: 38px;
+      right: 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--sub);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+    .chart-y-max {
+      position: absolute;
+      top: 26px;
+      left: 6px;
+      width: 28px;
+      text-align: right;
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--sub);
+      pointer-events: none;
+    }
+    .chart-y-min {
+      position: absolute;
+      bottom: 24px;
+      left: 6px;
+      width: 28px;
+      text-align: right;
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--sub);
+      pointer-events: none;
+    }
+    .chart-goal-tag {
+      position: absolute;
+      right: 10px;
+      transform: translateY(-115%);
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--sub);
+      pointer-events: none;
+    }
+    .chart-stage {
+      position: relative;
+      width: 100%;
+      height: 300px; /* Adjust chart plot height freely here */
+    }
     .time-chart {
       width: 100%;
-      max-width: 100%;
-      height: 300px;
+      height: 100%;
       display: block;
+    }
+    .chart-x-labels {
+      position: absolute;
+      bottom: 7px;
+      left: 38px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--sub);
+      pointer-events: none;
     }
 
     /* Metrics Cards Grid below Chart — Horizontally Aligned Scores */
@@ -1600,15 +1662,15 @@
         const sumVals = allVals.reduce((a, b) => a + b, 0);
         const avgVal = allVals.length > 0 ? (sumVals / allVals.length).toFixed(1) : '0';
 
-        // Full-horizon coordinate mapping inside viewBox
-        const width = 620;
+        // Plot coordinates inside .chart-stage (with no <text> inside SVG so height changes never distort fonts)
+        const width = 600;
         const height = 150;
-        const padLeft = 36;
-        const padRight = 10;
-        const padTop = 26;
-        const padBottom = 26;
-        const chartWidth = width - padLeft - padRight;
-        const chartHeight = height - padTop - padBottom;
+        const padLeft = 4;
+        const padRight = 4;
+        const padTop = 8;
+        const padBottom = 8;
+        const plotWidth = width - padLeft - padRight;
+        const plotHeight = height - padTop - padBottom;
         const maxVal = Math.max(
           activeMetric.goal || 0,
           ...dataPoints.map(p => p.val),
@@ -1617,15 +1679,18 @@
 
         const points = dataPoints.map((p, idx) => {
           const x = dataPoints.length > 1
-            ? padLeft + (idx / (dataPoints.length - 1)) * chartWidth
-            : padLeft + chartWidth / 2;
-          const y = height - padBottom - (p.val / maxVal) * chartHeight;
+            ? padLeft + (idx / (dataPoints.length - 1)) * plotWidth
+            : padLeft + plotWidth / 2;
+          const y = height - padBottom - (p.val / maxVal) * plotHeight;
           return { x, y, ...p };
         });
 
         const pathData = points.reduce((acc, p, idx) => `${acc} ${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
         const goalY = activeMetric.goal !== null
-          ? height - padBottom - (activeMetric.goal / maxVal) * chartHeight
+          ? height - padBottom - (activeMetric.goal / maxVal) * plotHeight
+          : null;
+        const goalTopPercent = goalY !== null
+          ? Math.max(8, Math.min(92, (goalY / height) * 100))
           : null;
         const unitLabel = activeMetric.unit ? `(${activeMetric.unit})` : '(units)';
 
@@ -1654,22 +1719,24 @@
           <div class="metric-selector-bar">
             ${selectorButtonsHtml}
           </div>
-          <div class="chart-wrapper">
-            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="time-chart">
-              <text x="${padLeft}" y="${padTop - 10}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">${activeMetric.label} ${unitLabel}</text>
-              <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
-              <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
-              <text x="${padLeft - 6}" y="${padTop + 3}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${maxVal}</text>
-              <text x="${padLeft - 6}" y="${height - padBottom + 3}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">0</text>
-              ${goalY !== null ? `
-                <line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />
-                <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${activeMetric.goal}</text>
-              ` : ''}
-              <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" />
-              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} ${activeMetric.unit || ''}</title></circle>`).join('')}
-              <text x="${padLeft}" y="${height - 7}" fill="var(--sub)" font-size="9" font-family="inherit">${startDateFormatted}</text>
-              <text x="${width - padRight}" y="${height - 7}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${endDateFormatted}</text>
-            </svg>
+          <div class="chart-plot-box">
+            <div class="chart-title-label">${activeMetric.label} ${unitLabel}</div>
+            <div class="chart-y-max">${maxVal}</div>
+            <div class="chart-y-min">0</div>
+            ${goalTopPercent !== null ? `<div class="chart-goal-tag" style="top: calc(28px + ${goalTopPercent}%);">goal: ${activeMetric.goal}</div>` : ''}
+            <div class="chart-stage">
+              <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="time-chart">
+                <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
+                <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
+                ${goalY !== null ? `<line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />` : ''}
+                <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" vector-effect="non-scaling-stroke" />
+                ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} ${activeMetric.unit || ''}</title></circle>`).join('')}
+              </svg>
+            </div>
+            <div class="chart-x-labels">
+              <span>${startDateFormatted}</span>
+              <span>${endDateFormatted}</span>
+            </div>
           </div>
           <div class="metrics-grid">
             <div class="metric-card">
