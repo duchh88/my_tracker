@@ -504,12 +504,16 @@
     }
     .metric-label {
       font-size: 0.65rem;
+      line-height: 1.25;
+      min-height: calc(0.65rem * 1.25 * 2); /* Guarantees at least 2 lines of height */
       color: var(--sub);
       text-transform: uppercase;
       letter-spacing: 0.02em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      display: flex;
+      align-items: flex-start;
     }
     .metric-score-row {
       display: flex;
