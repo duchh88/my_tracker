@@ -282,7 +282,6 @@
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
-      /* ADJUST CELL CORNER RADIUS HERE (e.g. 3px = subtle, 6px = softer, 0px = sharp) */
       border-radius: 5px;
       background: var(--bg);
       cursor: pointer;
@@ -299,7 +298,6 @@
       transform: scale(0.95);
     }
 
-    /* ADJUST GOAL-MET DOT SIZE HERE (33.33% ≈ 1/3 of the full grid cell) */
     .matrix-cell[data-level="0"][data-dot="true"]::after {
       content: "";
       position: absolute;
@@ -359,6 +357,7 @@
     .chart-range-bar {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .range-btn {
       background: var(--bg-alt);
@@ -413,20 +412,23 @@
     .chart-wrapper {
       background: var(--bg);
       border-radius: 8px;
-      padding: 12px;
-      overflow-x: auto;
+      padding: 10px 10px 8px;
+      width: 100%;
+      overflow: hidden;
     }
     .time-chart {
       width: 100%;
-      height: 140px;
+      max-width: 100%;
+      height: 300px;
       display: block;
     }
 
-    /* Metrics Cards Grid below Chart */
+    /* Metrics Cards Grid below Chart — Horizontally Aligned Scores */
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
+      align-items: stretch;
     }
     .metric-card {
       background: var(--bg);
@@ -434,17 +436,39 @@
       padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      justify-content: space-between;
+      gap: 6px;
+      min-width: 0;
     }
     .metric-label {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--sub);
       text-transform: uppercase;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .metric-score-row {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      min-height: 1.35rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .metric-value {
       font-size: 1.05rem;
       font-weight: 700;
+      line-height: 1.2;
       color: var(--habit-accent, var(--main));
+    }
+    .metric-unit {
+      font-size: 0.7rem;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--sub);
     }
 
     /* Fixed Floating Bottom Navigation Bar */
@@ -774,7 +798,7 @@
       color: var(--main);
       font-weight: 700;
     }
-    
+
     .settings-action-btn {
       background: var(--bg-alt);
       border: 1px solid var(--sub);
@@ -876,7 +900,7 @@
     <div class="modal-box">
       <h3>settings & data backup</h3>
       <div class="modal-subtitle">manage your local storage & backup</div>
-      
+
       <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
         <button type="button" class="settings-action-btn" id="exportDataBtn">
           <span>💾 export backup (.json)</span>
@@ -1576,12 +1600,13 @@
         const sumVals = allVals.reduce((a, b) => a + b, 0);
         const avgVal = allVals.length > 0 ? (sumVals / allVals.length).toFixed(1) : '0';
 
-        const width = 540;
-        const height = 140;
-        const padLeft = 65;
-        const padRight = 25;
-        const padTop = 30;
-        const padBottom = 30;
+        // Full-horizon coordinate mapping inside viewBox
+        const width = 620;
+        const height = 150;
+        const padLeft = 36;
+        const padRight = 10;
+        const padTop = 26;
+        const padBottom = 26;
         const chartWidth = width - padLeft - padRight;
         const chartHeight = height - padTop - padBottom;
         const maxVal = Math.max(
@@ -1591,7 +1616,9 @@
         );
 
         const points = dataPoints.map((p, idx) => {
-          const x = padLeft + (idx / (dataPoints.length - 1 || 1)) * chartWidth;
+          const x = dataPoints.length > 1
+            ? padLeft + (idx / (dataPoints.length - 1)) * chartWidth
+            : padLeft + chartWidth / 2;
           const y = height - padBottom - (p.val / maxVal) * chartHeight;
           return { x, y, ...p };
         });
@@ -1628,34 +1655,43 @@
             ${selectorButtonsHtml}
           </div>
           <div class="chart-wrapper">
-            <svg viewBox="0 0 ${width} ${height}" class="time-chart">
-              <text x="${padLeft}" y="${padTop - 12}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">${activeMetric.label} ${unitLabel}</text>
+            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="time-chart">
+              <text x="${padLeft}" y="${padTop - 10}" fill="var(--sub)" font-size="10" font-family="inherit" font-weight="700">${activeMetric.label} ${unitLabel}</text>
               <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
               <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="var(--sub)" stroke-width="1" opacity="0.4" />
-              <text x="${padLeft - 8}" y="${padTop + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${maxVal}</text>
-              <text x="${padLeft - 8}" y="${height - padBottom + 4}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">0</text>
+              <text x="${padLeft - 6}" y="${padTop + 3}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${maxVal}</text>
+              <text x="${padLeft - 6}" y="${height - padBottom + 3}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">0</text>
               ${goalY !== null ? `
                 <line x1="${padLeft}" y1="${goalY}" x2="${width - padRight}" y2="${goalY}" stroke="var(--sub)" stroke-dasharray="4" stroke-width="1" opacity="0.6" />
                 <text x="${width - padRight}" y="${goalY - 4}" fill="var(--sub)" font-size="9" text-anchor="end">goal: ${activeMetric.goal}</text>
               ` : ''}
               <path d="${pathData}" fill="none" stroke="var(--habit-accent, var(--main))" stroke-width="2" />
               ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--habit-accent, var(--main))"><title>${p.date}: ${p.val} ${activeMetric.unit || ''}</title></circle>`).join('')}
-              <text x="${padLeft}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit">${startDateFormatted}</text>
-              <text x="${width - padRight}" y="${height - 8}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${endDateFormatted}</text>
+              <text x="${padLeft}" y="${height - 7}" fill="var(--sub)" font-size="9" font-family="inherit">${startDateFormatted}</text>
+              <text x="${width - padRight}" y="${height - 7}" fill="var(--sub)" font-size="9" font-family="inherit" text-anchor="end">${endDateFormatted}</text>
             </svg>
           </div>
           <div class="metrics-grid">
             <div class="metric-card">
               <span class="metric-label">highest record</span>
-              <span class="metric-value">${highestRecord} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.unit || ''}</small></span>
+              <div class="metric-score-row">
+                <span class="metric-value">${highestRecord}</span>
+                <span class="metric-unit">${activeMetric.unit || ''}</span>
+              </div>
             </div>
             <div class="metric-card">
               <span class="metric-label">average</span>
-              <span class="metric-value">${avgVal} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.unit || ''}</small></span>
+              <div class="metric-score-row">
+                <span class="metric-value">${avgVal}</span>
+                <span class="metric-unit">${activeMetric.unit || ''}</span>
+              </div>
             </div>
             <div class="metric-card">
               <span class="metric-label">${activeMetric.streakLabel}</span>
-              <span class="metric-value">${activeMetric.longestStreak.value} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.longestStreak.unit}</small></span>
+              <div class="metric-score-row">
+                <span class="metric-value">${activeMetric.longestStreak.value}</span>
+                <span class="metric-unit">${activeMetric.longestStreak.unit}</span>
+              </div>
             </div>
           </div>
         `;
@@ -1762,9 +1798,9 @@
     document.getElementById('exportDataBtn').onclick = async () => {
       const jsonString = JSON.stringify(state, null, 2);
       const fileName = `prokopton_backup_${todayKey()}.json`;
-      
+
       const blob = new Blob([jsonString], { type: 'application/json' });
-      
+
       if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'application/json' })] })) {
         try {
           const file = new File([blob], fileName, { type: 'application/json' });
@@ -1938,13 +1974,13 @@
       document.getElementById('inputModalTitle').textContent = `log: ${habit.name}`;
       document.getElementById('inputModalGoalInfo').textContent = `daily goal: ${habit.goal} ${habit.unit || ''}`;
       document.getElementById('inputAmountLabel').textContent = `main amount (${habit.unit || 'units'})`;
-      
+
       inputDateEl.value = targetDate;
       const baseDate = keyToDate(targetDate);
       calendarMonthDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
       populateInputValuesForDate(habit, targetDate);
       renderInputCalendar(habit);
-      
+
       inputModal.classList.add('open');
     }
 
@@ -2125,7 +2161,7 @@
       editingId = habit.id;
       document.getElementById('editName').value = habit.name;
       selectedColor = habit.color || '#e2b714';
-      
+
       swatches.forEach(s => {
         if (s.dataset.color === selectedColor) {
           s.classList.add('selected');
