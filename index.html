@@ -279,9 +279,11 @@
     }
 
     .matrix-cell {
+      position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 3px;
+      /* ADJUST CELL CORNER RADIUS HERE (e.g. 3px = subtle, 6px = softer, 0px = sharp) */
+      border-radius: 5px;
       background: var(--bg);
       cursor: pointer;
       transition: transform 0.12s ease, outline 0.12s ease;
@@ -296,7 +298,21 @@
     .matrix-cell:active {
       transform: scale(0.95);
     }
-    
+
+    /* ADJUST GOAL-MET DOT SIZE HERE (33.33% ≈ 1/3 of the full grid cell) */
+    .matrix-cell[data-level="0"][data-dot="true"]::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 33.33%;
+      height: 33.33%;
+      border-radius: 50%;
+      background: var(--habit-accent, var(--main));
+      opacity: 0.8;
+      transform: translate(-50%, -50%);
+    }
+
     .matrix-cell[data-level="1"] { background: var(--habit-accent, var(--main)); opacity: 0.3; }
     .matrix-cell[data-level="2"] { background: var(--habit-accent, var(--main)); opacity: 0.65; }
     .matrix-cell[data-level="3"] { background: var(--habit-accent, var(--main)); opacity: 1; }
@@ -503,6 +519,177 @@
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
+    /* Full Calendar View inside Input Modal */
+    .calendar-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cal-nav-btn {
+      background: var(--bg);
+      border: 1px solid var(--sub);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .cal-nav-btn:hover {
+      border-color: var(--main);
+      color: var(--main);
+    }
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+      font-size: 0.65rem;
+      color: var(--sub);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-day-cell {
+      min-height: 42px;
+      background: var(--bg);
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 4px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--text);
+      transition: all 0.12s;
+    }
+    .cal-day-cell.empty {
+      background: transparent;
+      cursor: default;
+    }
+    .cal-day-cell:not(.empty):hover {
+      border-color: var(--main);
+    }
+    .cal-day-cell.has-data {
+      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .cal-day-cell.selected {
+      background: var(--main);
+      color: var(--bg);
+      border-color: var(--main);
+      font-weight: 700;
+    }
+    .cal-day-num {
+      font-size: 0.72rem;
+      line-height: 1.1;
+    }
+    .cal-day-val {
+      font-size: 0.62rem;
+      color: var(--main);
+      line-height: 1.1;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-day-cell.selected .cal-day-val {
+      color: var(--bg);
+    }
+
+    /* Repeat Controls inside Edit Modal */
+    .repeat-options-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .repeat-opt-btn {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      color: var(--sub);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .repeat-opt-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .repeat-opt-btn.active {
+      background: var(--main);
+      color: var(--bg);
+      border-color: var(--main);
+      font-weight: 700;
+    }
+    .repeat-config-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--sub);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .repeat-inline-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+    .repeat-inline-row input {
+      width: 72px;
+      background: var(--bg);
+      border: 1px solid var(--sub);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .days-picker-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day-chip-btn {
+      background: var(--bg);
+      border: 1px solid var(--sub);
+      color: var(--sub);
+      padding: 6px 2px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    .day-chip-btn.active {
+      background: var(--main);
+      color: var(--bg);
+      border-color: var(--main);
+      font-weight: 700;
+    }
+
     /* Sub-Metric Editor inside Edit Modal */
     .submetric-list {
       display: flex;
@@ -566,7 +753,7 @@
     .modal-backdrop.open { display: grid; }
     .modal-box {
       background: var(--bg); border: 1px solid var(--sub); border-radius: 10px;
-      width: min(92vw, 420px); padding: 20px; display: flex; flex-direction: column; gap: 16px;
+      width: min(92vw, 440px); padding: 20px; display: flex; flex-direction: column; gap: 16px;
       max-height: 90vh; overflow-y: auto;
     }
     .modal-box h3 { font-size: 1rem; color: var(--main); }
@@ -714,13 +901,26 @@
     </div>
   </div>
 
-  <!-- Input Progress Modal -->
+  <!-- Input Progress Modal with Full Calendar -->
   <div class="modal-backdrop" id="inputModal">
     <form class="modal-box" id="inputForm">
       <h3 id="inputModalTitle">log progress</h3>
       <div class="modal-subtitle" id="inputModalGoalInfo"></div>
+
+      <div class="calendar-box" id="calendarBox">
+        <div class="calendar-header">
+          <button type="button" class="cal-nav-btn" id="calPrevBtn">‹ prev</button>
+          <span id="calMonthLabel">november 2026</span>
+          <button type="button" class="cal-nav-btn" id="calNextBtn">next ›</button>
+        </div>
+        <div class="calendar-weekdays">
+          <span>sun</span><span>mon</span><span>tue</span><span>wed</span><span>thu</span><span>fri</span><span>sat</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
       <div class="form-group">
-        <label>date</label>
+        <label>selected date</label>
         <input type="date" id="inputDate" required />
       </div>
       <div class="form-group">
@@ -769,6 +969,17 @@
         <input type="number" id="editGoal" min="1" />
       </div>
       <div class="form-group">
+        <label>repeat</label>
+        <div class="repeat-options-grid" id="repeatOptionsGrid">
+          <button type="button" class="repeat-opt-btn" data-repeat="everyday">everyday</button>
+          <button type="button" class="repeat-opt-btn" data-repeat="every_x_day">every x day</button>
+          <button type="button" class="repeat-opt-btn" data-repeat="specific_days">specific days</button>
+          <button type="button" class="repeat-opt-btn" data-repeat="times_a_week">times a week</button>
+          <button type="button" class="repeat-opt-btn" data-repeat="times_a_month">times a month</button>
+        </div>
+        <div class="repeat-config-box" id="repeatConfigBox"></div>
+      </div>
+      <div class="form-group">
         <label>sub-metrics (shown in chart view)</label>
         <div class="submetric-list" id="editSubmetricsList"></div>
         <button type="button" class="add-sub-btn" id="addSubmetricBtn">+ add sub-metric</button>
@@ -783,9 +994,14 @@
   <script>
     const THEMES = ['serika', 'carbon', 'dracula', 'nord', 'matrix', 'yggdrasil'];
     const STORAGE_KEY = 'prokopton_habitkit_v12';
+    const WEEKDAY_LABELS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const MONTH_NAMES = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
 
     const STOIC_QUOTES = [
-      '"Waste no more time arguing. Be one." - Marcus Aurelius',
+      '"Waste no more time arguing what a good man should be. Be one." - Marcus Aurelius',
       '"First say to yourself what you would be; then do what you have to do." - Epictetus',
       '"We suffer more often in imagination than in reality." - Seneca',
       '"He who lives harmony with himself lives harmony with the universe." - Marcus Aurelius',
@@ -802,12 +1018,23 @@
       document.getElementById('stoicQuote').textContent = randomQuote;
     }
 
-    const todayKey = () => {
-      const now = new Date();
-      const offset = now.getTimezoneOffset();
-      const local = new Date(now.getTime() - offset * 60 * 1000);
+    function dateToKey(dateObj) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60 * 1000);
       return local.toISOString().split('T')[0];
-    };
+    }
+
+    function keyToDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, (m || 1) - 1, d || 1);
+    }
+
+    function addDays(dateObj, delta) {
+      return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + delta);
+    }
+
+    const todayKey = () => dateToKey(new Date());
 
     function formatDateDDMMYY(dateStr) {
       const parts = dateStr.split('-');
@@ -815,10 +1042,35 @@
       return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
     }
 
+    function getWeekStart(dateObj) {
+      const day = dateObj.getDay();
+      return addDays(dateObj, -day);
+    }
+
+    function getMonthStart(dateObj) {
+      return new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+    }
+
+    function normalizeRepeat(rep) {
+      const validTypes = ['everyday', 'every_x_day', 'specific_days', 'times_a_week', 'times_a_month'];
+      const type = validTypes.includes(rep?.type) ? rep.type : 'everyday';
+      const days = Array.isArray(rep?.days)
+        ? [...new Set(rep.days.map(Number).filter(n => n >= 0 && n <= 6))].sort()
+        : [1, 3, 5];
+      return {
+        type,
+        intervalDays: Math.max(1, parseInt(rep?.intervalDays, 10) || 2),
+        days: days.length > 0 ? days : [1, 3, 5],
+        timesPerWeek: Math.max(1, Math.min(7, parseInt(rep?.timesPerWeek, 10) || 3)),
+        timesPerMonth: Math.max(1, Math.min(31, parseInt(rep?.timesPerMonth, 10) || 10))
+      };
+    }
+
     function normalizeHabit(habit) {
       return {
         ...habit,
         history: habit.history || {},
+        repeat: normalizeRepeat(habit.repeat),
         subMetrics: Array.isArray(habit.subMetrics)
           ? habit.subMetrics.map((sm, idx) => ({
               id: sm.id || `sub_${idx}_${Date.now()}`,
@@ -833,8 +1085,8 @@
     let rawState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
       theme: 'serika',
       habits: [
-        { id: '1', name: 'read books', color: '#61afef', category: 'study', unit: 'pages', goal: 20, history: {}, subMetrics: [] },
-        { id: '2', name: 'deep work', color: '#c678dd', category: 'work', unit: 'min', goal: 60, history: {}, subMetrics: [] }
+        { id: '1', name: 'read books', color: '#61afef', category: 'study', unit: 'pages', goal: 20, history: {}, repeat: normalizeRepeat({ type: 'everyday' }), subMetrics: [] },
+        { id: '2', name: 'deep work', color: '#c678dd', category: 'work', unit: 'min', goal: 60, history: {}, repeat: normalizeRepeat({ type: 'everyday' }), subMetrics: [] }
       ]
     };
 
@@ -848,8 +1100,10 @@
     let chartRange = '14';
     let selectedChartMetricByHabit = {};
     let editingId = null;
+    let draftRepeat = normalizeRepeat({ type: 'everyday' });
     let draftSubmetrics = [];
     let loggingHabitId = null;
+    let calendarMonthDate = new Date();
     let selectedColor = '#e2b714';
 
     function save() {
@@ -868,24 +1122,108 @@
       save();
     }
 
-    function getStreak(habit) {
-      let streak = 0;
-      const d = new Date();
-      const offset = d.getTimezoneOffset();
-      while (true) {
-        const local = new Date(d.getTime() - offset * 60 * 1000);
-        const key = local.toISOString().split('T')[0];
-        const val = habit.history[key] || 0;
-        if (val >= habit.goal) {
+    function isDayGoalMet(habit, dateStr) {
+      const val = habit.history[dateStr] || 0;
+      return val >= (habit.goal || 1);
+    }
+
+    function countMetDaysInRange(habit, startDate, endDate) {
+      let count = 0;
+      let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      while (cursor <= end) {
+        if (isDayGoalMet(habit, dateToKey(cursor))) count++;
+        cursor = addDays(cursor, 1);
+      }
+      return count;
+    }
+
+    function isWeekGoalMet(habit, weekStartDate) {
+      const target = habit.repeat?.timesPerWeek || 3;
+      return countMetDaysInRange(habit, weekStartDate, addDays(weekStartDate, 6)) >= target;
+    }
+
+    function isMonthGoalMet(habit, monthStartDate) {
+      const target = habit.repeat?.timesPerMonth || 10;
+      const monthEnd = new Date(monthStartDate.getFullYear(), monthStartDate.getMonth() + 1, 0);
+      return countMetDaysInRange(habit, monthStartDate, monthEnd) >= target;
+    }
+
+    function isScheduledDay(habit, dateObj) {
+      const rep = normalizeRepeat(habit.repeat);
+      if (rep.type === 'specific_days') {
+        return rep.days.includes(dateObj.getDay());
+      }
+      if (rep.type === 'every_x_day') {
+        const dates = Object.keys(habit.history || {}).sort();
+        if (dates.length === 0) return true;
+        const anchor = keyToDate(dates[0]);
+        const diffDays = Math.round((dateObj - anchor) / (1000 * 60 * 60 * 24));
+        return ((diffDays % rep.intervalDays) + rep.intervalDays) % rep.intervalDays === 0;
+      }
+      return true;
+    }
+
+    function getRepeatSummary(habit) {
+      const rep = normalizeRepeat(habit.repeat);
+      if (rep.type === 'every_x_day') return `every ${rep.intervalDays}d`;
+      if (rep.type === 'specific_days') {
+        const labels = rep.days.map(d => WEEKDAY_LABELS[d]).join(',');
+        return labels || 'specific days';
+      }
+      if (rep.type === 'times_a_week') return `${rep.timesPerWeek}x / week`;
+      if (rep.type === 'times_a_month') return `${rep.timesPerMonth}x / month`;
+      return 'everyday';
+    }
+
+    function getStreakDisplay(habit) {
+      const rep = normalizeRepeat(habit.repeat);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      if (rep.type === 'times_a_week') {
+        let streak = 0;
+        let weekStart = getWeekStart(today);
+        if (isWeekGoalMet(habit, weekStart)) {
           streak++;
-          d.setDate(d.getDate() - 1);
-        } else if (key === todayKey()) {
-          d.setDate(d.getDate() - 1);
+        }
+        weekStart = addDays(weekStart, -7);
+        while (isWeekGoalMet(habit, weekStart)) {
+          streak++;
+          weekStart = addDays(weekStart, -7);
+        }
+        return `${streak}w 🔥`;
+      }
+
+      if (rep.type === 'times_a_month') {
+        let streak = 0;
+        let monthStart = getMonthStart(today);
+        if (isMonthGoalMet(habit, monthStart)) {
+          streak++;
+        }
+        monthStart = new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1);
+        while (isMonthGoalMet(habit, monthStart)) {
+          streak++;
+          monthStart = new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1);
+        }
+        return `${streak}m 🔥`;
+      }
+
+      let streak = 0;
+      let cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      while (true) {
+        const key = dateToKey(cursor);
+        const met = isDayGoalMet(habit, key);
+        if (met) {
+          streak++;
+          cursor = addDays(cursor, -1);
+        } else if (key === dateToKey(today) || !isScheduledDay(habit, cursor)) {
+          cursor = addDays(cursor, -1);
         } else {
           break;
         }
       }
-      return streak;
+      return `${streak}d 🔥`;
     }
 
     function getLongestStreakFromHistory(historyObj, threshold = null) {
@@ -922,12 +1260,84 @@
       return maxStreak;
     }
 
+    function getLongestHabitStreak(habit) {
+      const rep = normalizeRepeat(habit.repeat);
+      const dates = Object.keys(habit.history || {}).sort();
+      if (dates.length === 0) return { value: 0, unit: 'days' };
+
+      if (rep.type === 'times_a_week') {
+        const earliestWeek = getWeekStart(keyToDate(dates[0]));
+        const latestWeek = getWeekStart(new Date());
+        let maxW = 0;
+        let curW = 0;
+        let prevW = null;
+        let cursor = earliestWeek;
+        while (cursor <= latestWeek) {
+          if (isWeekGoalMet(habit, cursor)) {
+            if (prevW && Math.round((cursor - prevW) / (1000 * 60 * 60 * 24)) === 7) {
+              curW++;
+            } else {
+              curW = 1;
+            }
+            prevW = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+            maxW = Math.max(maxW, curW);
+          } else {
+            curW = 0;
+            prevW = null;
+          }
+          cursor = addDays(cursor, 7);
+        }
+        return { value: maxW, unit: 'weeks' };
+      }
+
+      if (rep.type === 'times_a_month') {
+        const earliestMonth = getMonthStart(keyToDate(dates[0]));
+        const latestMonth = getMonthStart(new Date());
+        let maxM = 0;
+        let curM = 0;
+        let prevM = null;
+        let cursor = earliestMonth;
+        while (cursor <= latestMonth) {
+          if (isMonthGoalMet(habit, cursor)) {
+            const monthDiff = prevM
+              ? (cursor.getFullYear() - prevM.getFullYear()) * 12 + (cursor.getMonth() - prevM.getMonth())
+              : 0;
+            curM = prevM && monthDiff === 1 ? curM + 1 : 1;
+            prevM = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+            maxM = Math.max(maxM, curM);
+          } else {
+            curM = 0;
+            prevM = null;
+          }
+          cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        }
+        return { value: maxM, unit: 'months' };
+      }
+
+      return {
+        value: getLongestStreakFromHistory(habit.history || {}, habit.goal || 1),
+        unit: 'days'
+      };
+    }
+
     function getLevel(val, goal) {
       if (!val || val <= 0) return 0;
       const ratio = val / goal;
       if (ratio >= 1) return 3;
       if (ratio >= 0.5) return 2;
       return 1;
+    }
+
+    function shouldShowDotOnCell(habit, dateObj, level) {
+      if (level > 0) return false;
+      const rep = normalizeRepeat(habit.repeat);
+      if (rep.type === 'times_a_week') {
+        return isWeekGoalMet(habit, getWeekStart(dateObj));
+      }
+      if (rep.type === 'times_a_month') {
+        return isMonthGoalMet(habit, getMonthStart(dateObj));
+      }
+      return false;
     }
 
     function setHabitEntries(habitId, dateStr, mainValue, subMetricValues = {}) {
@@ -983,6 +1393,8 @@
 
     function renderCards() {
       const today = todayKey();
+      const now = new Date();
+      const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const grid = document.getElementById('habitsGrid');
       grid.innerHTML = '';
 
@@ -998,9 +1410,15 @@
       }
 
       filteredHabits.forEach(habit => {
-        const streak = getStreak(habit);
+        const streakText = getStreakDisplay(habit);
         const todayVal = habit.history[today] || 0;
-        const isDoneToday = todayVal >= habit.goal;
+        const rep = normalizeRepeat(habit.repeat);
+        const repSummary = getRepeatSummary(habit);
+        const isDoneToday = rep.type === 'times_a_week'
+          ? isWeekGoalMet(habit, getWeekStart(todayObj))
+          : rep.type === 'times_a_month'
+            ? isMonthGoalMet(habit, getMonthStart(todayObj))
+            : todayVal >= habit.goal;
         const habitColor = habit.color || '#e2b714';
         const subCount = (habit.subMetrics || []).length;
 
@@ -1017,7 +1435,8 @@
               </div>
               <div class="habit-meta">
                 <span>goal: ${habit.goal} ${habit.unit || ''}</span>
-                <span>streak: ${streak}d 🔥</span>
+                <span>repeat: ${repSummary}</span>
+                <span>streak: ${streakText}</span>
                 ${subCount > 0 ? `<span>+${subCount} sub-metric${subCount > 1 ? 's' : ''}</span>` : ''}
               </div>
             </div>
@@ -1031,14 +1450,12 @@
         `;
 
         for (let i = 90; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const offset = d.getTimezoneOffset();
-          const local = new Date(d.getTime() - offset * 60 * 1000);
-          const dateStr = local.toISOString().split('T')[0];
+          const cellDate = addDays(todayObj, -i);
+          const dateStr = dateToKey(cellDate);
           const val = habit.history[dateStr] || 0;
           const level = getLevel(val, habit.goal);
-          html += `<div class="matrix-cell" data-date="${dateStr}" data-level="${level}" role="button" tabindex="0" aria-label="Log progress for ${dateStr}" title="${dateStr}: ${val} / ${habit.goal} ${habit.unit || ''}"></div>`;
+          const showDot = shouldShowDotOnCell(habit, cellDate, level);
+          html += `<div class="matrix-cell" data-date="${dateStr}" data-level="${level}" data-dot="${showDot ? 'true' : 'false'}" role="button" tabindex="0" aria-label="Log progress for ${dateStr}" title="${dateStr}: ${val} / ${habit.goal} ${habit.unit || ''}"></div>`;
         }
 
         html += `
@@ -1088,8 +1505,11 @@
             unit: found.unit || '',
             history: found.history || {},
             goal: null,
-            streakLabel: 'active streak',
-            longestStreak: getLongestStreakFromHistory(found.history || {}, null)
+            streakLabel: 'longest streak',
+            longestStreak: {
+              value: getLongestStreakFromHistory(found.history || {}, null),
+              unit: 'days'
+            }
           };
         }
       }
@@ -1100,7 +1520,7 @@
         history: habit.history || {},
         goal: habit.goal || 1,
         streakLabel: 'longest streak',
-        longestStreak: getLongestStreakFromHistory(habit.history || {}, habit.goal || 1)
+        longestStreak: getLongestHabitStreak(habit)
       };
     }
 
@@ -1130,7 +1550,7 @@
             ...(habit.subMetrics || []).flatMap(sm => Object.keys(sm.history || {}))
           ].sort();
           if (allHabitDates.length > 0) {
-            const earliest = new Date(allHabitDates[0]);
+            const earliest = keyToDate(allHabitDates[0]);
             const now = new Date();
             const diffTime = Math.abs(now - earliest);
             daysCount = Math.max(14, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
@@ -1139,13 +1559,11 @@
           }
         }
 
+        const now = new Date();
+        const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const dataPoints = [];
         for (let i = daysCount - 1; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const offset = d.getTimezoneOffset();
-          const local = new Date(d.getTime() - offset * 60 * 1000);
-          const dateStr = local.toISOString().split('T')[0];
+          const dateStr = dateToKey(addDays(todayObj, -i));
           const val = metricHistory[dateStr] || 0;
           dataPoints.push({ date: dateStr, val });
         }
@@ -1201,6 +1619,7 @@
               </div>
               <div class="habit-meta">
                 <span>metric: ${activeMetric.label}</span>
+                <span>repeat: ${getRepeatSummary(habit)}</span>
                 <span>range: ${chartRange === 'all' ? 'all time' : chartRange + ' days'}</span>
               </div>
             </div>
@@ -1236,7 +1655,7 @@
             </div>
             <div class="metric-card">
               <span class="metric-label">${activeMetric.streakLabel}</span>
-              <span class="metric-value">${activeMetric.longestStreak} <small style="font-size:0.7rem; font-weight:400;">days</small></span>
+              <span class="metric-value">${activeMetric.longestStreak.value} <small style="font-size:0.7rem; font-weight:400;">${activeMetric.longestStreak.unit}</small></span>
             </div>
           </div>
         `;
@@ -1317,6 +1736,7 @@
         unit: 'times',
         goal: 1,
         history: {},
+        repeat: normalizeRepeat({ type: 'everyday' }),
         subMetrics: []
       });
       input.value = '';
@@ -1419,11 +1839,75 @@
       }
     };
 
-    // Input Progress Modal Logic
+    // Input Progress Modal & Full Calendar Logic
     const inputModal = document.getElementById('inputModal');
     const inputDateEl = document.getElementById('inputDate');
     const inputAmountEl = document.getElementById('inputAmount');
     const inputSubmetricsContainer = document.getElementById('inputSubmetricsContainer');
+    const calendarGridEl = document.getElementById('calendarGrid');
+    const calMonthLabelEl = document.getElementById('calMonthLabel');
+
+    function getRecordedSummaryForDate(habit, dateStr) {
+      const parts = [];
+      const mainVal = habit.history?.[dateStr];
+      if (mainVal !== undefined && mainVal !== null && mainVal > 0) {
+        parts.push(`${mainVal}${habit.unit ? ' ' + habit.unit : ''}`);
+      }
+      (habit.subMetrics || []).forEach(sm => {
+        const sv = sm.history?.[dateStr];
+        if (sv !== undefined && sv !== null && sv > 0) {
+          parts.push(`${sv}${sm.unit ? ' ' + sm.unit : ''}`);
+        }
+      });
+      return parts;
+    }
+
+    function renderInputCalendar(habit) {
+      if (!habit) return;
+      const year = calendarMonthDate.getFullYear();
+      const month = calendarMonthDate.getMonth();
+      calMonthLabelEl.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const selectedDate = inputDateEl.value;
+
+      let html = '';
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        html += `<div class="cal-day-cell empty"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dObj = new Date(year, month, day);
+        const dateStr = dateToKey(dObj);
+        const recordedParts = getRecordedSummaryForDate(habit, dateStr);
+        const hasData = recordedParts.length > 0;
+        const isSelected = dateStr === selectedDate;
+        const badgeText = hasData ? recordedParts.join(' · ') : '';
+
+        html += `
+          <button
+            type="button"
+            class="cal-day-cell ${hasData ? 'has-data' : ''} ${isSelected ? 'selected' : ''}"
+            data-date="${dateStr}"
+            title="${dateStr}${hasData ? ': ' + recordedParts.join(', ') : ''}"
+          >
+            <span class="cal-day-num">${day}</span>
+            <span class="cal-day-val">${badgeText}</span>
+          </button>
+        `;
+      }
+
+      calendarGridEl.innerHTML = html;
+      calendarGridEl.querySelectorAll('.cal-day-cell[data-date]').forEach(btn => {
+        btn.onclick = () => {
+          const clickedDate = btn.dataset.date;
+          inputDateEl.value = clickedDate;
+          populateInputValuesForDate(habit, clickedDate);
+          renderInputCalendar(habit);
+        };
+      });
+    }
 
     function populateInputValuesForDate(habit, targetDate) {
       inputAmountEl.value = habit.history[targetDate] !== undefined ? habit.history[targetDate] : '';
@@ -1456,16 +1940,33 @@
       document.getElementById('inputAmountLabel').textContent = `main amount (${habit.unit || 'units'})`;
       
       inputDateEl.value = targetDate;
+      const baseDate = keyToDate(targetDate);
+      calendarMonthDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
       populateInputValuesForDate(habit, targetDate);
+      renderInputCalendar(habit);
       
       inputModal.classList.add('open');
-      setTimeout(() => inputAmountEl.focus(), 50);
     }
+
+    document.getElementById('calPrevBtn').onclick = () => {
+      calendarMonthDate = new Date(calendarMonthDate.getFullYear(), calendarMonthDate.getMonth() - 1, 1);
+      const habit = state.habits.find(h => h.id === loggingHabitId);
+      renderInputCalendar(habit);
+    };
+
+    document.getElementById('calNextBtn').onclick = () => {
+      calendarMonthDate = new Date(calendarMonthDate.getFullYear(), calendarMonthDate.getMonth() + 1, 1);
+      const habit = state.habits.find(h => h.id === loggingHabitId);
+      renderInputCalendar(habit);
+    };
 
     inputDateEl.onchange = () => {
       const habit = state.habits.find(h => h.id === loggingHabitId);
-      if (!habit) return;
+      if (!habit || !inputDateEl.value) return;
+      const picked = keyToDate(inputDateEl.value);
+      calendarMonthDate = new Date(picked.getFullYear(), picked.getMonth(), 1);
       populateInputValuesForDate(habit, inputDateEl.value);
+      renderInputCalendar(habit);
     };
 
     document.getElementById('cancelInput').onclick = () => {
@@ -1489,9 +1990,91 @@
       loggingHabitId = null;
     };
 
-    // Edit Habit Modal & Sub-Metrics Editor
+    // Edit Habit Modal, Repeat Config & Sub-Metrics Editor
     const editModal = document.getElementById('editModal');
     const editSubmetricsList = document.getElementById('editSubmetricsList');
+    const repeatConfigBox = document.getElementById('repeatConfigBox');
+
+    function renderRepeatUI() {
+      document.querySelectorAll('.repeat-opt-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.repeat === draftRepeat.type);
+      });
+
+      if (draftRepeat.type === 'everyday') {
+        repeatConfigBox.innerHTML = `<div style="font-size:0.75rem; color:var(--sub);">repeats every day.</div>`;
+        return;
+      }
+
+      if (draftRepeat.type === 'every_x_day') {
+        repeatConfigBox.innerHTML = `
+          <div class="repeat-inline-row">
+            <span>every</span>
+            <input type="number" id="repeatIntervalInput" min="1" max="365" value="${draftRepeat.intervalDays}" />
+            <span>days</span>
+          </div>
+        `;
+        document.getElementById('repeatIntervalInput').oninput = (e) => {
+          draftRepeat.intervalDays = Math.max(1, parseInt(e.target.value, 10) || 1);
+        };
+        return;
+      }
+
+      if (draftRepeat.type === 'specific_days') {
+        repeatConfigBox.innerHTML = `
+          <div class="days-picker-row">
+            ${WEEKDAY_LABELS.map((label, idx) => `
+              <button type="button" class="day-chip-btn ${draftRepeat.days.includes(idx) ? 'active' : ''}" data-day="${idx}">${label}</button>
+            `).join('')}
+          </div>
+        `;
+        repeatConfigBox.querySelectorAll('.day-chip-btn').forEach(btn => {
+          btn.onclick = () => {
+            const dIdx = Number(btn.dataset.day);
+            if (draftRepeat.days.includes(dIdx)) {
+              if (draftRepeat.days.length > 1) {
+                draftRepeat.days = draftRepeat.days.filter(x => x !== dIdx);
+              }
+            } else {
+              draftRepeat.days = [...draftRepeat.days, dIdx].sort();
+            }
+            renderRepeatUI();
+          };
+        });
+        return;
+      }
+
+      if (draftRepeat.type === 'times_a_week') {
+        repeatConfigBox.innerHTML = `
+          <div class="repeat-inline-row">
+            <input type="number" id="repeatWeeklyInput" min="1" max="7" value="${draftRepeat.timesPerWeek}" />
+            <span>times per week (dots fill goal-met weeks)</span>
+          </div>
+        `;
+        document.getElementById('repeatWeeklyInput').oninput = (e) => {
+          draftRepeat.timesPerWeek = Math.max(1, Math.min(7, parseInt(e.target.value, 10) || 1));
+        };
+        return;
+      }
+
+      if (draftRepeat.type === 'times_a_month') {
+        repeatConfigBox.innerHTML = `
+          <div class="repeat-inline-row">
+            <input type="number" id="repeatMonthlyInput" min="1" max="31" value="${draftRepeat.timesPerMonth}" />
+            <span>times per month (dots fill goal-met months)</span>
+          </div>
+        `;
+        document.getElementById('repeatMonthlyInput').oninput = (e) => {
+          draftRepeat.timesPerMonth = Math.max(1, Math.min(31, parseInt(e.target.value, 10) || 1));
+        };
+      }
+    }
+
+    document.querySelectorAll('.repeat-opt-btn').forEach(btn => {
+      btn.onclick = () => {
+        draftRepeat.type = btn.dataset.repeat;
+        renderRepeatUI();
+      };
+    });
 
     function syncDraftSubmetricsFromDOM() {
       const rows = editSubmetricsList.querySelectorAll('.submetric-row');
@@ -1554,6 +2137,8 @@
       document.getElementById('editCategory').value = habit.category || '';
       document.getElementById('editUnit').value = habit.unit || '';
       document.getElementById('editGoal').value = habit.goal || 1;
+      draftRepeat = normalizeRepeat(habit.repeat);
+      renderRepeatUI();
 
       draftSubmetrics = (habit.subMetrics || []).map(sm => ({
         id: sm.id,
@@ -1581,6 +2166,7 @@
         habit.category = document.getElementById('editCategory').value.trim().toLowerCase();
         habit.unit = document.getElementById('editUnit').value.trim();
         habit.goal = parseInt(document.getElementById('editGoal').value) || 1;
+        habit.repeat = normalizeRepeat(draftRepeat);
         habit.subMetrics = draftSubmetrics.filter(sm => sm.name.length > 0);
 
         if (
